@@ -20,6 +20,13 @@
                       │           │           │ (Member) │
                       └─────┬─────┘           └──────────┘
                             │ ∞
+                            │  🆕 可选属于
+                            │ ∞
+                      ┌─────┴─────┐
+                      │   Group   │  🆕
+                      │(家庭/部门) │
+                      └───────────┘
+                            │ ∞
                             │
                             │ ∞
                       ┌─────┴─────┐ 1       ∞ ┌──────────┐
@@ -84,12 +91,38 @@ CREATE TABLE members (
     avatar_color    CHAR(7),  -- #RRGGBB
     role            member_role NOT NULL DEFAULT 'member',
     user_id         UUID REFERENCES users(id) ON DELETE SET NULL,  -- 可选关联
-    joined_at       TIMESTAMPTZ DEFAULT now()
+    group_id        UUID,  -- 🆕 所属组（见 groups 表）
+    joined_at       TIMESTAMPTZ DEFAULT now(),
+    
+    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_members_trip_id ON members(trip_id);
 CREATE INDEX idx_members_user_id ON members(user_id);
+CREATE INDEX idx_members_group_id ON members(group_id);  -- 🆕
 ```
+
+### 2.3.1 🆕 groups（组）
+```sql
+CREATE TYPE group_type AS ENUM ('family', 'company', 'department', 'team', 'other');
+
+CREATE TABLE groups (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trip_id         UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+    name            TEXT NOT NULL CHECK (length(name) <= 30),
+    group_type      group_type NOT NULL DEFAULT 'other',
+    color           CHAR(7),  -- #RRGGBB
+    created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_groups_trip_id ON groups(trip_id);
+CREATE INDEX idx_groups_type ON groups(group_type);
+```
+
+**组设计要点**:
+- 一个成员最多属于一个组（简化 MVP）
+- 删除组时，成员 `group_id` 自动 SET NULL
+- 组颜色用于 UI 区分（头像、列表项）
 
 ### 2.4 expenses（账目）
 ```sql

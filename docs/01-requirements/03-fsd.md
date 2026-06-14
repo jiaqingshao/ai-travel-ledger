@@ -258,9 +258,12 @@ def minimize_transfers(balances):
 - n=15 人时，结算 < 10ms
 
 ### 4.2 输出格式
+
+**按个人粒度**:
 ```json
 {
   "trip_id": "uuid",
+  "view": "individual",
   "computed_at": "2026-06-14T10:00:00Z",
   "summary": {
     "total_expense": 5000.00,
@@ -277,6 +280,54 @@ def minimize_transfers(balances):
   ]
 }
 ```
+
+**🆕 按组粒度（新增）**:
+```json
+{
+  "trip_id": "uuid",
+  "view": "group",
+  "computed_at": "2026-06-14T10:00:00Z",
+  "summary": {
+    "total_expense": 5000.00,
+    "currency": "CNY",
+    "group_count": 2,
+    "member_count": 5,
+    "expense_count": 23
+  },
+  "group_balances": [
+    {
+      "group_id": "uuid1",
+      "group_name": "张家",
+      "group_type": "family",
+      "net": 800.00,
+      "members": [
+        { "member_id": "uuid1a", "nickname": "张爸", "net": 500.00 },
+        { "member_id": "uuid1b", "nickname": "张妈", "net": 200.00 },
+        { "member_id": "uuid1c", "nickname": "张小", "net": 100.00 }
+      ]
+    },
+    {
+      "group_id": "uuid2",
+      "group_name": "李家",
+      "group_type": "family",
+      "net": -800.00,
+      "members": [
+        { "member_id": "uuid2a", "nickname": "李爸", "net": -500.00 },
+        { "member_id": "uuid2b", "nickname": "李妈", "net": -300.00 }
+      ]
+    }
+  ],
+  "transfers": [
+    { "from_group": "李家", "to_group": "张家", "amount": 800.00 }
+  ]
+}
+```
+
+**🆕 组内计算逻辑**:
+1. 先按 §4.1.1 计算每人净收支
+2. 按 `group_id` 分组累加，得到每组净收支
+3. 在"组维度"上跑 §4.1.2 贪心算法
+4. 转账列表展示"X家 → Y家，¥Z"
 
 ### 4.3 标记已结算
 - 成员点击"已转给 XX"按钮
