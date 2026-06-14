@@ -1,0 +1,78 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+.flutter-plugins
+pubspec.lock
+
+# Android
+.gradle/
+local.properties
+*.jks
+*.keystore
+android/app/release/
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+android/key.properties
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/xcuserdata/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Media
+*.jpg
+*.png
+*.gif
+!assets/images/.gitkeep
+!design/**/.gitkeep
+
+# Coverage
+coverage/
+*.lcov
+
+# Misc
+*.bak
+*.tmp
