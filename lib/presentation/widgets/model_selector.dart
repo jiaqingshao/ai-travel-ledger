@@ -1,84 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/ai_config.dart';
 
-class ModelSelector extends StatelessWidget {
+/// 模型选择器（下拉 + 卡片两种风格）
+class ModelSelector extends ConsumerWidget {
   const ModelSelector({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AIConfigProvider>(
-      builder: (context, provider, child) {
-        return DropdownButton<AIModelConfig>(
-          value: provider.currentModel,
-          hint: const Text('选择AI模型'),
-          items: AIModelConfig.allModels.map((model) {
-            return DropdownMenuItem<AIModelConfig>(
-              value: model,
-              child: Row(
-                children: [
-                  Icon(
-                    model.isLocal ? Icons.computer : Icons.cloud,
-                    size: 16,
-                    color: model.isLocal ? Colors.green : Colors.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(model.name),
-                ],
-              ),
-            );
-          }).toList(),
-          onChanged: (model) {
-            if (model != null) {
-              provider.switchModel(model);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('已切换到: ${model.name}'),
-                  duration: const Duration(seconds: 2),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(currentAIModelProvider);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButton<AIModelConfig>(
+        isExpanded: true,
+        underline: const SizedBox(),
+        value: current,
+        items: AIModelConfig.allModels.map((model) {
+          return DropdownMenuItem<AIModelConfig>(
+            value: model,
+            child: Row(
+              children: [
+                Icon(
+                  model.isLocal ? Icons.computer : Icons.cloud,
+                  size: 18,
+                  color: model.isPrimary ? const Color(0xFF2E7D32) : Colors.grey,
                 ),
-              );
-            }
-          },
-        );
-      },
+                const SizedBox(width: 8),
+                Text(model.name),
+                const Spacer(),
+                if (model.isPrimary)
+                  const Text('主力',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF2E7D32),
+                          fontWeight: FontWeight.bold)),
+                if (model.isFree && !model.isPrimary)
+                  const Text('免费',
+                      style: TextStyle(fontSize: 10, color: Colors.green)),
+              ],
+            ),
+          );
+        }).toList(),
+        onChanged: (model) {
+          if (model != null) {
+            ref.read(aiConfigProvider.notifier).switchModel(model);
+          }
+        },
+      ),
     );
   }
 }
 
-class ModelStatusIndicator extends StatelessWidget {
+/// 顶部状态指示器（显示当前模型 + 状态点）
+class ModelStatusIndicator extends ConsumerWidget {
   const ModelStatusIndicator({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AIConfigProvider>(
-      builder: (context, provider, child) {
-        final model = provider.currentModel;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(currentAIModelProvider);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(
-            color: model.isLocal ? Colors.green.shade100 : Colors.blue.shade100,
-            borderRadius: BorderRadius.circular(20),
+            shape: BoxShape.circle,
+            color: current.isPrimary
+                ? const Color(0xFF2E7D32)
+                : Colors.orange,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                model.isLocal ? Icons.computer : Icons.cloud,
-                size: 14,
-                color: model.isLocal ? Colors.green : Colors.blue,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                model.name,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: model.isLocal ? Colors.green : Colors.blue,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+        const SizedBox(width: 6),
+        Text(
+          current.isPrimary ? 'M3' : (current.isLocal ? '本地' : '云端'),
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
     );
   }
 }

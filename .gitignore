@@ -9,6 +9,16 @@ build/
 *.iml
 .flutter-plugins
 pubspec.lock
+.flutter-plugins-dependencies
+**/*.g.dart
+**/*.freezed.dart
+**/*.mocks.dart
+
+# 临时文件 / 大文件
+flutter.zip
+*.zip
+*.tar.gz
+*.7z
 
 # Android
 .gradle/
