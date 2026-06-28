@@ -32,17 +32,6 @@
 
   const VERSION = "v1.0.2";
 
-  // ============== BUG-002 修复：锁定画布 CSS 尺寸 ==============
-  // 原因：浏览器缩放（Ctrl+/-）或窗口大小变化时，canvas.getBoundingClientRect()
-  //       返回的 width 会变化，但 canvas.width 固定。这会导致 scaleX 计算错误。
-  // 方案：将画布的 CSS 尺寸锁定为逻辑尺寸，使视觉尺寸与逻辑尺寸严格一致。
-  // 注：如未来需要支持高 DPI 缩放，请使用 devicePixelRatio 同步修改 canvas.width
-  //     和 canvas.style.width（参见 BUG-002 复盘）。
-  function lockCanvasSize(canvas) {
-    canvas.style.width = canvas.width + "px";
-    canvas.style.height = canvas.height + "px";
-  }
-
   // ============== 状态 ==============
   const state = {
     size: 19,
@@ -61,6 +50,54 @@
   const canvas = $("board");
   const ctx = canvas.getContext("2d");
 
+  // ============== BUG-001 (真实浏览器回归) 修复 ==============
+  // 根因总结：
+  //   v1.0.1 在真实 Chromium 浏览器中，CSS `aspect-ratio: 1/1` + `width: 100%`
+  //   + `height: auto` + `max-width: 760px` 组合下，某些版本 (尤其带字体加载、
+  //   高 DPI、或初始 viewport 切换) canvas 的 CSS 盒被回退到 canvas.width (760)，
+  //   与 board-shadow 的 content-box 宽度不一致，导致 scaleX > 1，真实点击
+  //   视觉位置正确但落点向右偏移 1~2 格（39~78px）。
+  //
+  // 修复方案（最小侵入、向后兼容）：
+  //   1) syncCanvasSize() — 根据 board-shadow 的 content-box 宽度计算 canvas
+  //      的 CSS 边长 = min(content-box, 760)，然后显式设置 canvas.style.width
+  //      和 canvas.style.height 为该值，确保 canvas 始终是正方形 CSS 盒
+  //   2) 调整 canvas.width (内部像素) = CSS 边长 → scaleX = canvas.width /
+  //      clientWidth 永远 = 1.0，eventToCell 无需再做缩放
+  //   3) ResizeObserver 监听 board-shadow 尺寸变化，自动重新 sync
+  //   4) 兼容性回退：如果 board-shadow 尚未挂载，至少锁定初始 760x760
+  //
+  // 这样：
+  //   - canvas 保持响应式（窗口缩小时 canvas 也变小）
+  //   - canvas 内部像素与 CSS 像素 1:1（scaleX = scaleY = 1）
+  //   - eventToCell 简化为最朴素的 `clientX/Y - rect.left/top`
+  //   - 任何 CSS / DPR / 缩放都不会再让点击位置偏移
+
+  /**
+   * 将 canvas 的内部像素尺寸同步到 board-shadow 的内容盒宽度（封顶 760），
+   * 同时设置 style.width / style.height 使 CSS 盒严格正方形且等于内部像素。
+   * 调用时机：newBoard / window resize / 棋盘大小切换 / 初始化 / ResizeObserver。
+   */
+  function syncCanvasSize() {
+    const wrap = canvas.parentElement; // .board-shadow
+    if (!wrap) return;
+    // 优先用 .board-shadow 的 content-box 宽度（已经扣掉 padding:18*2）
+    // 若 wrap 还没布局（width=0），回退到 760
+    const wrapCS = getComputedStyle(wrap);
+    const padL = parseFloat(wrapCS.paddingLeft) || 0;
+    const padR = parseFloat(wrapCS.paddingRight) || 0;
+    let cssW = wrap.clientWidth - padL - padR;
+    if (!Number.isFinite(cssW) || cssW <= 0) cssW = 760;
+    // 封顶 760（保持 19 路棋盘最大边长）
+    cssW = Math.min(760, Math.max(160, Math.floor(cssW)));
+
+    // 内部像素 = CSS 像素（避免 scaleX ≠ 1）
+    canvas.width = cssW;
+    canvas.height = cssW;
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssW + "px";
+  }
+
   // ============== 初始化 ==============
   function newBoard(size) {
     state.size = size;
@@ -73,8 +110,7 @@
     state.lastMove = null;
     state.koPoint = null;
     state.passes = 0;
-    // BUG-002 修复：锁定 canvas CSS 尺寸，避免浏览器缩放影响落子
-    lockCanvasSize(canvas);
+    syncCanvasSize(); // BUG-001 v1.0.2：重新同步画布尺寸（保证 canvas 始终是正方形、scaleX=1）
     renderAll();
   }
 
@@ -340,39 +376,46 @@
 
   // ============== 鼠标坐标 → 棋盘交点 ==============
   /**
-   * 将鼠标 / 触摸事件坐标转换为棋盘交点 (x, y)。
-   * 关键要点（确保落点不偏移）：
-   *   1) 用 canvas.getBoundingClientRect() 获取画布在视口中的位置 + CSS 尺寸
-   *   2) 依据 CSS 尺寸与 canvas.width 的比值进行缩放，
-   *      将“CSS 像素”换算为画布内部“设备像素”
-   *   3) 使用与 drawBoard 一致的 padding / cell，使点击坐标与绘制坐标完全对齐
-   *   4) 双重越界检查 + 吸附半径，保证只有贴近交点的点击才会落子
+   * v1.0.2 BUG-001 修复后的事件坐标 → 网格坐标映射。
+   *
+   * 关键不变式（由 syncCanvasSize() 维持）：
+   *   canvas.width === canvas.clientWidth（恒为 1:1，scaleX = 1.0）
+   *   canvas.style.width === canvas.clientWidth（CSS 盒与内部像素一致）
+   *   canvas.getBoundingClientRect() 反映 CSS 盒，视口坐标可靠
+   *
+   * 优先级：
+   *   1) evt.offsetX / offsetY（target-relative，最直接）
+   *   2) 回退到 (clientX - rect.left) * (canvas.width / rect.width)
+   *      （即使未来 rect.width 被外部 CSS 调改，仍能正确映射）
+   *   3) 防御性 Number.isFinite 拦截 NaN/undefined
    */
   function eventToCell(evt) {
     const rect = canvas.getBoundingClientRect();
-    // 防御性检查：rect 尺寸为 0/负/NaN → 直接拒绝
     if (!rect || !Number.isFinite(rect.width) || !Number.isFinite(rect.height)
         || rect.width <= 0 || rect.height <= 0) return null;
-
-    // 防御性检查：事件坐标必须为有限数（NaN/undefined 会导致后续崩溃）
     if (!evt || !Number.isFinite(evt.clientX) || !Number.isFinite(evt.clientY)
         || !Number.isFinite(rect.left) || !Number.isFinite(rect.top)) return null;
 
     const { padding, cell } = getCellMetrics();
-    // 防御性检查：metrics 无效（canvas 未初始化）→ 拒绝
     if (!Number.isFinite(padding) || !Number.isFinite(cell)
         || cell <= 0 || padding < 0) return null;
 
-    // BUG-002 修复：使用相对位置（比例）× canvas 逻辑宽度
-    // 原代码 scaleX = canvas.width / rect.width 在浏览器 zoom≠100% 时错位。
-    // 原因：clientX/Y 和 rect.left/width 都受浏览器 zoom 渲染级缩放影响，
-    //       但 canvas.width 是内部逻辑像素（不受 zoom 影响）。
-    // 修正：用相对位置（比例）与逻辑尺寸相乘，自动消除 zoom 影响。
-    if (rect.width <= 0 || rect.height <= 0) return null;
-    const relX = (evt.clientX - rect.left) / rect.width;
-    const relY = (evt.clientY - rect.top) / rect.height;
-    const px = relX * canvas.width;
-    const py = relY * canvas.height;
+    // 优先路径：offsetX/Y（target-relative，避免 rect/CSS 缩放干扰）
+    let px, py;
+    if (Number.isFinite(evt.offsetX) && Number.isFinite(evt.offsetY)
+        && evt.offsetX >= 0 && evt.offsetY >= 0
+        && evt.offsetX <= rect.width && evt.offsetY <= rect.height) {
+      px = evt.offsetX;
+      py = evt.offsetY;
+    } else {
+      // 回退路径：clientX/Y - rect.left/top × 缩放
+      // 这里不用 scaleX = canvas.width / rect.width 是因为 v1.0.2 中
+      // 已保证 canvas.width === rect.width，比例永远 = 1；保留此路径仅为防御
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      px = (evt.clientX - rect.left) * scaleX;
+      py = (evt.clientY - rect.top) * scaleY;
+    }
 
     // 步骤 2：画布内部像素 → 网格坐标（与绘图完全一致的公式）
     const gx = (px - padding) / cell;
@@ -380,13 +423,9 @@
     const x = Math.round(gx);
     const y = Math.round(gy);
 
-    // 防御性检查：x/y 必须是有限数（NaN 会被 Math.round 透传）
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-
-    // 越界检查
     if (x < 0 || y < 0 || x >= state.size || y >= state.size) return null;
 
-    // 吸附半径：只有距离交点 < 0.55 格时才会落子（避免两格中间点被误判）
     const dx = gx - x;
     const dy = gy - y;
     if (Math.hypot(dx, dy) > 0.55) return null;
@@ -737,11 +776,24 @@
   canvas.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
 
   // 鼠标移动 → 显示光标预览棋子（覆盖层）
+  // v1.0.2 BUG-001 修复：hover-stone 是 .board-shadow 的子元素，
+  // 但 JS 以前写入 hover.style.left = e.clientX - canvas.rect.left，
+  // 会让 hover 看似跟鼠标走，实际 board-shadow 的 padding 18px 导致
+  // hover-stone 的中心 跟鼠标错位 ~18px（累计 ~0.46 格偏移）。
+  // 修正：JS 直接写入 hover-stone 的中心 = 鼠标在 canvas 本地坐标，
+  //       且不再依赖 transform: translate(-50%)（CSS 中已移除）。
   const hover = $("hover-stone");
+  const HOVER_STONE_HALF = 14; // 28px / 2
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
-    hover.style.left = e.clientX - rect.left + "px";
-    hover.style.top = e.clientY - rect.top + "px";
+    // hover-stone 是 board-shadow 的子元素（位置基准 = board-shadow 左上角）
+    // canvas 在 board-shadow 中偏移：left = board-shadow.padding-left + canvas-in-shadow.left
+    // canvas-in-shadow.left = (board-shadow.content-width - canvas.clientWidth) / 2
+    // 简化为：hover.left = (mouse - board-shadow.rect.left) - HOVER_STONE_HALF
+    const bs = canvas.parentElement;
+    const bsRect = bs ? bs.getBoundingClientRect() : rect;
+    hover.style.left = (e.clientX - bsRect.left - HOVER_STONE_HALF) + "px";
+    hover.style.top = (e.clientY - bsRect.top - HOVER_STONE_HALF) + "px";
     const cell = eventToCell(e);
     if (cell) {
       hover.classList.add("show");
@@ -786,10 +838,63 @@
     }
   });
 
+  // v1.0.2 BUG-001 修复：窗口大小 / 棋盘大小变化时自动同步 canvas 尺寸
+  // 防止：用户拉伸窗口、DPR 变化、字体加载等导致 board-shadow 宽度
+  // 改变但 canvas 尺寸未同步 → scaleX ≠ 1，点击偏移。
+  let resizeSyncPending = false;
+  function requestSyncCanvasSize() {
+    if (resizeSyncPending) return;
+    resizeSyncPending = true;
+    requestAnimationFrame(() => {
+      resizeSyncPending = false;
+      const prev = { w: canvas.width, h: canvas.height };
+      syncCanvasSize();
+      if (canvas.width !== prev.w || canvas.height !== prev.h) {
+        renderAll(); // 尺寸变了必须重绘棋盘/棋子
+      }
+    });
+  }
+  window.addEventListener("resize", requestSyncCanvasSize, { passive: true });
+  window.addEventListener("orientationchange", requestSyncCanvasSize, { passive: true });
+  // ResizeObserver 监听 board-shadow 变化（某些浏览器/扩展会改变布局但不发 resize）
+  if (typeof ResizeObserver !== "undefined") {
+    const wrap = canvas.parentElement;
+    if (wrap) new ResizeObserver(requestSyncCanvasSize).observe(wrap);
+  }
+  // 字体加载完成后也重新同步（避免 font swap 导致的布局偏移）
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(requestSyncCanvasSize).catch(() => {});
+  }
+
   // 启动
   newBoard(19);
   updateTurnIndicator();
+  // 启动后再同步一次（确保 DOM 完全布局后 canvas 尺寸正确）
+  requestSyncCanvasSize();
 
   // 暴露给外部（调试 / 测试用）
-  window.__goGame = { state, playMove, newBoard, undo, pass };
+  window.__goGame = {
+    state,
+    playMove,
+    newBoard,
+    undo,
+    pass,
+    syncCanvasSize,        // v1.0.2 新增：供测试调用以手动同步
+    eventToCell,           // v1.0.2 新增：供测试验证映射正确性
+    getCanvasInfo() {      // v1.0.2 新增：诊断辅助
+      const r = canvas.getBoundingClientRect();
+      return {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        cssWidth: canvas.clientWidth,
+        cssHeight: canvas.clientHeight,
+        rectLeft: r.left,
+        rectTop: r.top,
+        rectWidth: r.width,
+        rectHeight: r.height,
+        scaleX: canvas.width / r.width,
+        scaleY: canvas.height / r.height,
+      };
+    },
+  };
 })();
