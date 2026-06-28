@@ -7,7 +7,8 @@
 | 2026-06-20 | 开发日报 (cron: 07970c65) | OpenClaw memory flush 期间 write 工具被限制，仅允许写入 memory/ 目录 | 2026-06-24 通过 exec PowerShell 补存 | ✅ 已修复 |
 | 2026-06-21 | 开发日报 (cron: 07970c65) | 同上 | 同上 | ✅ 已修复 |
 | 2026-06-22 | 开发日报 (cron: 07970c65) | 同上 | 同上 | ✅ 已修复 |
-| 2026-06-28 | **BUG-001** 五子棋坐标偏移 2 格 | 用户报告：点击 A10 棋子落在 B15；根因：`getCellMetrics()` 中 `padding=28` 硬编码居中，CSS 缩放时画布居中失效；`eventToCell()` 缺乏防御性检查 | dev Agent 6/27 23:46 修复（`padding = (W - cell*(size-1)) / 2` 自适应 + `touchstart` 支持 + 19/13/9 路全网格 round-trip 验证通过）；待 git commit + 用户浏览器验证 | ✅ 已修复（待 commit） |
+| 2026-06-28 | **BUG-001** 五子棋坐标偏移 2 格 | 用户报告：点击 A10 棋子落在 B15；根因：`getCellMetrics()` 中 `padding=28` 硬编码居中，CSS 缩放时画布居中失效；`eventToCell()` 缺乏防御性检查 | dev Agent 6/27 23:46 修复（`padding = (W - cell*(size-1)) / 2` 自适应 + `touchstart` 支持 + 19/13/9 路全网格 round-trip 验证通过）；git commit `78184a6` + dev/qa 复测 15/15 PASS | ✅ 已修复 + 已 commit |
+| 2026-06-28 | **BUG-002** 浏览器缩放下五子棋落子偏移 | 用户实测报告：当浏览器缩放不是 100%（Ctrl+0=100% / Ctrl+Plus=125% / Ctrl-Minus=90%）时，点击落子点和实际交叉点不一致；根因：`eventToCell()` 中 `scaleX = canvas.width / rect.width`，rect.width 受浏览器缩放影响变化，导致缩放后落子点偏移 | 6/28 21:05 PM 派单给 dev Agent；21:14 dev LLM API hang；21:17 PM 直修 + commit `a1d79b8`（lockCanvasSize）；21:23 自测发现 125% zoom FAIL；21:26 修正算法用相对位置；commit `072fb0b`；Node 模拟 100%/125%/90%/75%/50% 全部 PASS | ✅ 已修复 + 已 commit |
 
 ## 规则
 
