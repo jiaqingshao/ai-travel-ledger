@@ -363,11 +363,16 @@
     if (!Number.isFinite(padding) || !Number.isFinite(cell)
         || cell <= 0 || padding < 0) return null;
 
-    // 步骤 1：CSS 像素 → 画布内部像素（考虑响应式缩放）
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const px = (evt.clientX - rect.left) * scaleX;
-    const py = (evt.clientY - rect.top) * scaleY;
+    // BUG-002 修复：使用相对位置（比例）× canvas 逻辑宽度
+    // 原代码 scaleX = canvas.width / rect.width 在浏览器 zoom≠100% 时错位。
+    // 原因：clientX/Y 和 rect.left/width 都受浏览器 zoom 渲染级缩放影响，
+    //       但 canvas.width 是内部逻辑像素（不受 zoom 影响）。
+    // 修正：用相对位置（比例）与逻辑尺寸相乘，自动消除 zoom 影响。
+    if (rect.width <= 0 || rect.height <= 0) return null;
+    const relX = (evt.clientX - rect.left) / rect.width;
+    const relY = (evt.clientY - rect.top) / rect.height;
+    const px = relX * canvas.width;
+    const py = relY * canvas.height;
 
     // 步骤 2：画布内部像素 → 网格坐标（与绘图完全一致的公式）
     const gx = (px - padding) / cell;
