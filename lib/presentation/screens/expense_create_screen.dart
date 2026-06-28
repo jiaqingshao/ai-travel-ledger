@@ -7,15 +7,17 @@ import '../../data/models/expense.dart';
 import '../../data/models/member.dart';
 import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
+import '../widgets/split_type_selector.dart';
 
 /// 新建费用 - 3 步流程
 ///
 /// 步骤：
 ///  1) 选择付款人（默认上次付款人）
 ///  2) 选择类别（10 个内置 + 其他）
-///  3) 输入金额（自定义数字键盘，3 秒内完成）
+///  3) 输入金额（自定义数字键盘）+ 分摊规则选择（W3 / SplitTypeSelector）
 ///
-/// 默认分摊 = 当前付款人 + 同 group 的成员（找不到组则仅付款人 1 人）。
+/// 默认分摊 = 均摊全部成员（W3 / E-003）。
+/// W2 hardcode 的"付款人 + 同 group"逻辑被 [SplitTypeSelector] 取代。
 class ExpenseCreateScreen extends ConsumerStatefulWidget {
   const ExpenseCreateScreen({
     super.key,
@@ -38,6 +40,9 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
   String _amountInput = '';
   final _descCtrl = TextEditingController();
   bool _submitting = false;
+
+  /// 分摊规则选择器的 GlobalKey（用于提交时导出 SplitRule）
+  final _splitSelectorKey = GlobalKey<SplitTypeSelectorState>();
 
   @override
   void dispose() {
@@ -138,6 +143,9 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
           amount: _amount,
           input: _amountInput,
           descriptionCtrl: _descCtrl,
+          members: members,
+          tripId: widget.tripId,
+          splitSelectorKey: _splitSelectorKey,
           onKey: _onKey,
           onBackspace: _onBackspace,
           onClear: _onClear,
@@ -197,17 +205,18 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
     if (!_canSubmit) return;
     setState(() => _submitting = true);
     try {
-      // 默认均摊：付款人 + 同 group 的成员
-      final members =
-          ref.read(membersByTripProvider(widget.tripId)).asData?.value ?? [];
-      final groupMembers = members
-          .where((m) =>
-              m.id == _payer!.id ||
-              (m.groupId != null && m.groupId == _payer!.groupId))
-          .map((m) => m.id)
-          .toSet()
-          .toList();
-      final splitRule = SplitRule.equal(groupMembers);
+      // 优先使用 SplitTypeSelector（W3）导出的规则
+      SplitRule splitRule;
+      final selectorState = _splitSelectorKey.currentState;
+      if (selectorState != null) {
+        final exported = selectorState.exportRule();
+        splitRule = exported.rule;
+      } else {
+        // 退化路径：selector 未构建（不应发生）→ 默认均摊全部成员
+        final members =
+            ref.read(membersByTripProvider(widget.tripId)).asData?.value ?? [];
+        splitRule = SplitRule.equal(members.map((m) => m.id).toList());
+      }
       final splitJson = jsonEncode(splitRule.toJson());
 
       final result = await ref.read(expenseNotifierProvider.notifier).create(
@@ -444,12 +453,15 @@ class _CategoryStep extends StatelessWidget {
   }
 }
 
-/// 步骤 3：金额 + 自定义数字键盘
+/// 步骤 3：金额 + 自定义数字键盘 + 分摊规则选择（W3）
 class _AmountStep extends StatelessWidget {
   const _AmountStep({
     required this.amount,
     required this.input,
     required this.descriptionCtrl,
+    required this.members,
+    required this.tripId,
+    required this.splitSelectorKey,
     required this.onKey,
     required this.onBackspace,
     required this.onClear,
@@ -458,6 +470,9 @@ class _AmountStep extends StatelessWidget {
   final double amount;
   final String input;
   final TextEditingController descriptionCtrl;
+  final List<Member> members;
+  final String tripId;
+  final GlobalKey<SplitTypeSelectorState> splitSelectorKey;
   final ValueChanged<String> onKey;
   final VoidCallback onBackspace;
   final VoidCallback onClear;
@@ -515,6 +530,16 @@ class _AmountStep extends StatelessWidget {
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.notes),
                   ),
+                ),
+                const SizedBox(height: 20),
+                const Divider(),
+                const SizedBox(height: 8),
+                // W3：分摊规则选择器
+                SplitTypeSelector(
+                  key: splitSelectorKey,
+                  total: amount,
+                  members: members,
+                  tripId: tripId,
                 ),
               ],
             ),
