@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'ai_service.dart';
+
 /// AI 模型类型枚举
 enum AIModelType {
   cloudM3,        // 🆕 主力：MiniMax M3（云端）
   localQwen36,    // 备力：Qwen3.6 35B（本地 LM Studio）
   cloudDeepSeek,  // 备选：DeepSeek
   cloudGlm4,      // 备选：智谱 GLM-4
+  cloudQianwen,   // 备选：通义千问
   custom,         // 自定义
 }
 

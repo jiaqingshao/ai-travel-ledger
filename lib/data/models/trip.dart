@@ -140,7 +140,7 @@ class Trip extends HiveObject {
       case 'active':
         // 兼容旧 active，按起止日期推断
         final today = DateTime.now();
-        if (endDate != null && endDate!.isBefore(today)) {
+        if (endDate != null && endDate.isBefore(today)) {
           s = TripStatus.ended;
         } else if (startDate.isAfter(today)) {
           s = TripStatus.preparing;

@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+import 'member.dart';
+
 part 'expense.g.dart';
 
 /// 费用类别
