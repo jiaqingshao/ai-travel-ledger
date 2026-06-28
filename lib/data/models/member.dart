@@ -80,7 +80,7 @@ class Member extends HiveObject {
     String? nickname,
     String? avatarColor,
     MemberRole? role,
-    String? groupId,
+    Object? groupId = _sentinel,
   }) {
     return Member(
       id: id,
@@ -89,10 +89,14 @@ class Member extends HiveObject {
       avatarColor: avatarColor ?? this.avatarColor,
       role: role ?? this.role,
       userId: userId,
-      groupId: groupId ?? this.groupId,
+      groupId: identical(groupId, _sentinel)
+          ? this.groupId
+          : groupId as String?,
       joinedAt: joinedAt,
     );
   }
+
+  static const Object _sentinel = Object();
 
   Map<String, dynamic> toJson() => {
         'id': id,
