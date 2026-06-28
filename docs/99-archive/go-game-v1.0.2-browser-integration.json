@@ -1,0 +1,10 @@
+{
+  "version": "v1.0.2",
+  "timestamp": "2026-06-28T13:34:56.149Z",
+  "totalScenarios": 12,
+  "totalClicks": 350,
+  "passed": 350,
+  "failed": 0,
+  "passRate": 1,
+  "failures": []
+}

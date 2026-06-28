@@ -10,6 +10,10 @@
 | 2026-06-28 | **BUG-001** 五子棋坐标偏移 2 格 | 用户报告：点击 A10 棋子落在 B15；根因：`getCellMetrics()` 中 `padding=28` 硬编码居中，CSS 缩放时画布居中失效；`eventToCell()` 缺乏防御性检查 | dev Agent 6/27 23:46 修复（`padding = (W - cell*(size-1)) / 2` 自适应 + `touchstart` 支持 + 19/13/9 路全网格 round-trip 验证通过）；git commit `78184a6` + dev/qa 复测 15/15 PASS | ✅ 已修复 + 已 commit |
 | 2026-06-28 | **BUG-002** 浏览器缩放下五子棋落子偏移 | 用户实测报告：当浏览器缩放不是 100%（Ctrl+0=100% / Ctrl+Plus=125% / Ctrl-Minus=90%）时，点击落子点和实际交叉点不一致；根因：`eventToCell()` 中 `scaleX = canvas.width / rect.width`，rect.width 受浏览器缩放影响变化，导致缩放后落子点偏移 | 6/28 21:05 PM 派单给 dev Agent；21:14 dev LLM API hang；21:17 PM 直修 + commit `a1d79b8`（lockCanvasSize）；21:23 自测发现 125% zoom FAIL；21:26 修正算法用相对位置；commit `072fb0b`；Node 模拟 100%/125%/90%/75%/50% 全部 PASS | ✅ 已修复 + 已 commit |
 
+| 2026-06-28 | **BUG-001** 五子棋坐标偏移 2 格 | 用户报告：点击 A10 棋子落在 B15；根因：`getCellMetrics()` 中 `padding=28` 硬编码居中，CSS 缩放时画布居中失效；`eventToCell()` 缺乏防御性检查 | dev Agent 6/27 23:46 修复（`padding = (W - cell*(size-1)) / 2` 自适应 + `touchstart` 支持 + 19/13/9 路全网格 round-trip 验证通过）；git commit `78184a6` + dev/qa 复测 15/15 PASS | ✅ 已修复 + 已 commit |
+| 2026-06-28 | **BUG-002** 浏览器缩放下五子棋落子偏移 | 用户实测报告：当浏览器缩放不是 100%（Ctrl+0=100% / Ctrl+Plus=125% / Ctrl-Minus=90%）时，点击落子点和实际交叉点不一致；根因：`eventToCell()` 中 `scaleX = canvas.width / rect.width`，rect.width 受浏览器缩放影响变化，导致缩放后落子点偏移 | 6/28 21:05 PM 派单给 dev Agent；21:14 dev LLM API hang；21:17 PM 直修 + commit `a1d79b8`（lockCanvasSize）；21:23 自测发现 125% zoom FAIL；21:26 修正算法用相对位置；commit `072fb0b`；Node 模拟 100%/125%/90%/75%/50% 全部 PASS | ✅ 已修复 + 已 commit |
+| 2026-06-29 | **测试项目归档** | 用户确认围棋/五子棋 Bug 修复成功；测试项目（非产品代码）归档到 `docs/99-archive/` | 删除 `go-game/` 和 `gomoku/` 目录；保留 QA 报告到 `docs/99-archive/`；归档说明 → `docs/99-archive/README.md`；issue-tracker 标记 BUG-001/002 为"已归档" | ✅ 已归档 |
+
 ## 规则
 
 1. 任何任务失败（工具报错、write 限制、exec 失败等）必须在此记录
