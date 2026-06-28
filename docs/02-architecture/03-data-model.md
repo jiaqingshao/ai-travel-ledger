@@ -1,7 +1,7 @@
 # 数据模型 (Data Model)
 
-**版本**: v0.1
-**日期**: 2026-06-14
+**版本**: v0.2（基于 PRD v0.3，新增语音/重复/统计相关表）
+**日期**: 2026-06-28
 
 ---
 
@@ -206,6 +206,75 @@ CREATE TABLE transfer_records (
 CREATE INDEX idx_transfers_settlement ON transfer_records(settlement_id);
 CREATE INDEX idx_transfers_from_settled ON transfer_records(from_member_id, settled_at);
 ```
+
+### 2.8 🆕 recurring_expenses（重复费用规则）
+
+```sql
+CREATE TYPE recurring_frequency AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
+
+CREATE TABLE recurring_expenses (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trip_id         UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+    template        JSONB NOT NULL,  -- {payer_id, category, amount, split_rule, description}
+    frequency       recurring_frequency NOT NULL,
+    interval_value  INT NOT NULL DEFAULT 1,  -- 每 N 个周期
+    day_of_week     INT CHECK (day_of_week BETWEEN 0 AND 6),  -- 0=Sun, 6=Sat（仅 weekly）
+    day_of_month    INT CHECK (day_of_month BETWEEN 1 AND 31),  -- 1-31（仅 monthly）
+    start_date      DATE NOT NULL,
+    end_date        DATE,  -- 可空，长期
+    last_generated  DATE,
+    next_due        DATE NOT NULL,
+    enabled         BOOLEAN NOT NULL DEFAULT true,
+    created_by      UUID REFERENCES users(id),
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_recurring_trip_id ON recurring_expenses(trip_id);
+CREATE INDEX idx_recurring_next_due ON recurring_expenses(next_due) WHERE enabled = true;
+CREATE INDEX idx_recurring_enabled ON recurring_expenses(enabled);
+```
+
+**使用方式**：
+- 用户一次性配置"每周一付民宿 800"
+- 系统每天 00:05 扫描 `next_due <= today AND enabled = true`
+- 命中后用 `template` 生成 `expenses` 行（带 `source='recurring'`）
+- 更新 `last_generated = today`、`next_due` 推进到下次
+
+### 2.9 🆕 voice_recordings（语音识别记录）
+
+```sql
+CREATE TYPE voice_status AS ENUM ('pending', 'parsed', 'confirmed', 'failed');
+
+CREATE TABLE voice_recordings (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trip_id         UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+    raw_text        TEXT NOT NULL,  -- STT 识别原始文本
+    parsed_json     JSONB,  -- {payer, amount, category, description, confidence}
+    expense_id      UUID REFERENCES expenses(id) ON DELETE SET NULL,  -- 关联生成的账目
+    status          voice_status NOT NULL DEFAULT 'pending',
+    created_by      UUID REFERENCES users(id),
+    created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_voice_trip_id ON voice_recordings(trip_id);
+CREATE INDEX idx_voice_created_at ON voice_recordings(trip_id, created_at DESC);
+CREATE INDEX idx_voice_status ON voice_recordings(status);
+```
+
+### 2.10 🆕 expenses 表扩展字段
+
+```sql
+ALTER TABLE expenses ADD COLUMN source TEXT DEFAULT 'manual' 
+    CHECK (source IN ('manual', 'voice', 'recurring', 'import'));
+ALTER TABLE expenses ADD COLUMN voice_recording_id UUID REFERENCES voice_recordings(id) ON DELETE SET NULL;
+ALTER TABLE expenses ADD COLUMN recurring_rule_id UUID REFERENCES recurring_expenses(id) ON DELETE SET NULL;
+```
+
+**字段含义**：
+- `source`：账目来源（手动/语音/重复/导入），便于筛选和统计
+- `voice_recording_id`：反查语音识别记录（用于审计）
+- `recurring_rule_id`：反查重复费用规则（用于追溯）
 
 ---
 

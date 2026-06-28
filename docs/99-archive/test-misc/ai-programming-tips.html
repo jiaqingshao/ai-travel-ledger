@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI 编程最佳实践指南 — 2026 版</title>
+<style>
+/* ===== 基础排版 ===== */
+@page {
+  size: A4;
+  margin: 2cm 1.8cm 2cm 2.5cm;
+  @bottom-center {
+    content: counter(page) " / " counter(total-pages);
+    font-size: 9pt;
+    color: #999;
+  }
+}
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  font-size: 11pt;
+  line-height: 1.75;
+  color: #2d2d2d;
+  background: #fff;
+}
+
+/* ===== 标题 ===== */
+h1 {
+  font-size: 26pt;
+  color: #1a365d;
+  border-bottom: 4px solid #3182ce;
+  padding-bottom: 12px;
+  margin-top: 0;
+  margin-bottom: 8px;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-size: 18pt;
+  color: #2b6cb0;
+  border-left: 5px solid #3182ce;
+  padding-left: 12px;
+  margin-top: 32px;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 14pt;
+  color: #2c5282;
+  margin-top: 20px;
+  page-break-after: avoid;
+}
+
+/* ===== 代码块 ===== */
+pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 16px;
+  border-radius: 6px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  font-size: 9pt;
+  overflow-x: auto;
+  line-height: 1.5;
+  page-break-inside: avoid;
+}
+
+code {
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10pt;
+  color: #e53e3e;
+}
+
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+/* ===== 表格 ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 10pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #2b6cb0;
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tr:nth-child(even) {
+  background: #f7fafc;
+}
+
+/* ===== 卡片 / 提示框 ===== */
+.tip-box {
+  background: #ebf8ff;
+  border-left: 5px solid #3182ce;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.warning-box {
+  background: #fffbeb;
+  border-left: 5px solid #d69e2e;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.success-box {
+  background: #f0fff4;
+  border-left: 5px solid #38a169;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.danger-box {
+  background: #fff5f5;
+  border-left: 5px solid #e53e3e;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ===== 列表 ===== */
+ul, ol {
+  padding-left: 22px;
+}
+
+li {
+  margin-bottom: 6px;
+}
+
+/* ===== 封面页 ===== */
+.cover-page {
+  page-break-after: always;
+  text-align: center;
+  padding-top: 15vh;
+}
+
+.cover-title {
+  font-size: 32pt;
+  color: #1a365d;
+  margin-bottom: 16px;
+}
+
+.cover-subtitle {
+  font-size: 16pt;
+  color: #718096;
+  margin-bottom: 40px;
+}
+
+.cover-meta {
+  font-size: 11pt;
+  color: #a0aec0;
+  margin-top: 60px;
+  line-height: 2;
+}
+
+/* ===== 目录 ===== */
+.toc-entry {
+  font-size: 13pt;
+  line-height: 2;
+  color: #2d3748;
+  text-decoration: none;
+}
+
+/* ===== 分隔线 ===== */
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 32px 0;
+}
+
+/* ===== 页眉 ===== */
+.header-note {
+  font-size: 8pt;
+  color: #a0aec0;
+  text-align: right;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 封面 ========== -->
+<div class="cover-page">
+  <div class="cover-title">🤖 AI 编程最佳实践指南</div>
+  <div class="cover-subtitle">从入门到精通 · 2026 年最新版</div>
+  <div class="cover-meta">
+    编写日期：2026 年 6 月<br>
+    适用工具：Cursor · Trae · Windsurf · Copilot · Claude Code<br>
+    技术栈：不限（通用方法论）
+  </div>
+</div>
+
+<!-- ========== 目录 ========== -->
+<h1>📑 目录</h1>
+
+<div style="line-height:2.2;">
+  <div>一、AI 编程思维重塑</div>
+  <div>二、提示词工程核心技巧</div>
+  <div>三、开发环境配置最佳实践</div>
+  <div>四、项目级 AI 协作工作流</div>
+  <div>五、代码质量与安全</div>
+  <div>六、常见陷阱与避坑指南</div>
+  <div>七、进阶：Agent 与 MCP</div>
+  <div>八、工具选型与对比</div>
+  <div>九、AI 编程 Checklist</div>
+</div>
+
+<hr>
+
+<!-- ========== 第一章 ========== -->
+<h1>一、AI 编程思维重塑</h1>
+
+<p>AI 编程不是"让 AI 帮我写代码"，而是<strong>"让 AI 帮我思考，我来做决定"</strong>。这是两个完全不同的模式。</p>
+
+<h2>1.1 核心认知转变</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:30%">传统编程</th>
+      <th>AI 辅助编程</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>我是程序员，AI 是工具</td>
+      <td><strong>我是架构师，AI 是高级初级工程师</strong></td>
+    </tr>
+    <tr>
+      <td>一行一行写代码</td>
+      <td><strong>设计需求 → AI 生成 → 我审查 → 迭代优化</strong></td>
+    </tr>
+    <tr>
+      <td>遇到问题查 Stack Overflow</td>
+      <td><strong>直接把代码丢给 AI，让它分析</strong></td>
+    </tr>
+    <tr>
+      <td>自己测试</td>
+      <td><strong>让 AI 写测试用例，我来验证</strong></td>
+    </tr>
+    <tr>
+      <td>一个人搞定一切</td>
+      <td><strong>多人分工：架构师 + 代码审查员 + 测试员</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="warning-box">
+  <strong>⚠️ 最重要的心态转变：</strong><br>
+  "AI 帮我节省了 80% 的时间，剩下的 20% 我来打磨。"<br>
+  不要指望 AI 一次出完美代码——迭代才是核心能力。
+</div>
+
+<h2>1.2 正确的角色定位</h2>
+
+<p>在 AI 辅助编程中，你需要扮演 <strong>三个角色</strong>：</p>
+
+<ol>
+  <li><strong>产品经理（PM）</strong> —— 明确需求、定义边界、验收交付物</li>
+  <li><strong>架构师（Architect）</strong> —— 设计技术选型、模块划分、数据流向</li>
+  <li><strong>代码审查员（Reviewer）</strong> —— 逐行检查 AI 生成的代码，确保正确性和安全性</li>
+</ol>
+
+<p>AI 是你的<strong>高级工程师</strong>，它干活，你把关。这个分工不能反。</p>
+
+<!-- ========== 第二章 ========== -->
+<h1>二、提示词工程核心技巧</h1>
+
+<p>提示词（Prompt）质量直接决定 AI 输出质量。以下是 2026 年经过社区验证的最佳实践。</p>
+
+<h2>2.1 万能提示词模板</h2>
+
+<pre><code>[角色]
+你是一位资深 {语言} 开发工程师，精通 {框架/库}。
+
+[背景]
+我正在开发一个 {项目描述}，使用 {技术栈}。
+
+[需求]
+请实现 {具体功能}，要求：
+1. {验收标准1}
+2. {验收标准2}
+3. {验收标准3}
+
+[约束]
+- 不要使用 {不想要的内容}
+- 必须遵循 {项目规范}
+- 代码需要包含 {注释/类型/文档}
+
+[示例]
+参考以下代码风格：
+{粘贴示例代码}
+
+[输出]
+请输出完整代码，并在代码后附上：
+1. 使用说明
+2. 已知限制</code></pre>
+
+<h2>2.2 六大核心技巧</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>技巧</th>
+      <th>说明</th>
+      <th>示例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>指定角色</strong></td>
+      <td>给 AI 一个专业身份</td>
+      <td>"你是一位安全专家..."</td>
+    </tr>
+    <tr>
+      <td><strong>提供上下文</strong></td>
+      <td>给足够的项目背景</td>
+      <td>"这是一个 Flutter 项目，使用 Riverpod..."</td>
+    </tr>
+    <tr>
+      <td><strong>分步思考</strong></td>
+      <td>要求 AI 一步步分析</td>
+      <td>"先分析需求，再设计架构，最后写代码"</td>
+    </tr>
+    <tr>
+      <td><strong>给出示例</strong></td>
+      <td>用示例代码定义期望</td>
+      <td>"参考以下代码风格：..."</td>
+    </tr>
+    <tr>
+      <td><strong>明确约束</strong></td>
+      <td>告诉 AI 不要做什么</td>
+      <td>"不要使用任何 any 类型"</td>
+    </tr>
+    <tr>
+      <td><strong>要求输出格式</strong></td>
+      <td>规定输出结构</td>
+      <td>"输出完整代码 + 使用说明 + 已知限制"</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2.3 错误提示词 vs 正确提示词</h2>
+
+<div class="danger-box">
+  <strong>❌ 错误示例：</strong><br>
+  "帮我写一个登录功能"</div>
+
+<div class="success-box">
+  <strong>✅ 正确示例：</strong><br>
+  "我需要一个 Flutter 项目的用户登录功能，使用 Firebase Auth。<br>
+  要求：<br>
+  1. 支持邮箱 + 密码登录<br>
+  2. 有加载状态和错误提示<br>
+  3. 使用 Riverpod 做状态管理<br>
+  4. 输入框有基本验证（邮箱格式、密码≥6位）<br>
+  5. 参考现有项目的代码风格（已附示例）<br>
+  请先列出实现步骤，确认后再输出代码。"</div>
+
+<h2>2.4 复杂任务拆解技巧</h2>
+
+<p>遇到复杂功能时，<strong>不要一次丢一个大需求</strong>，拆成多个小步骤：</p>
+
+<pre><code>第一步：生成数据模型（User, Order, Item）
+第二步：生成 API 接口层
+第三步：生成 UI 组件
+第四步：集成测试</code></pre>
+
+<p>每步确认后再进入下一步。这样 AI 的输出质量更高，你也更容易审查。</p>
+
+<!-- ========== 第三章 ========== -->
+<h1>三、开发环境配置最佳实践</h1>
+
+<h2>3.1 项目级配置（Rules / .cursorrules）</h2>
+
+<p>在根目录创建 <code>.cursorrules</code> 或 <code>.cursor/rules.md</code>，定义项目规范：</p>
+
+<pre><code># 项目规范
+- 语言：Dart 3.5+
+- 框架：Flutter 3.24
+- 状态管理：Riverpod
+- 路由：go_router
+- 命名：文件使用 snake_case，类使用 PascalCase
+- 错误：统一使用 Result 模式，返回 {success, data, error}
+- 禁止：使用 any 类型、魔法字符串、硬编码 URL
+- 必须：每个函数有 doc comment、每个 widget 有注释说明用途</code></pre>
+
+<p>这样每次对话时，AI 自动遵守项目规范，不需要重复说明。</p>
+
+<h2>3.2 AI 模型配置策略</h2>
+
+<p>根据任务类型切换不同的 AI 模型：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>任务类型</th>
+      <th>推荐模型</th>
+      <th>原因</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>日常代码补全</td>
+      <td>轻量模型 / Tab 自动补全</td>
+      <td>速度快，成本低</td>
+    </tr>
+    <tr>
+      <td>复杂架构设计</td>
+      <td>最强模型（Claude / GPT-4o）</td>
+      <td>需要深度推理</td>
+    </tr>
+    <tr>
+      <td>代码审查</td>
+      <td>推理能力强的模型</td>
+      <td>需要发现隐藏问题</td>
+    </tr>
+    <tr>
+      <td>调试错误</td>
+      <td>带代码分析能力的模型</td>
+      <td>需要理解错误上下文</td>
+    </tr>
+    <tr>
+      <td>文档生成</td>
+      <td>文本生成能力强的模型</td>
+      <td>需要清晰表达</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="tip-box">
+  <strong>💡 省钱技巧：</strong>日常用本地模型（免费），重要任务切云端最强模型。混合使用，效果和成本兼顾。
+</div>
+
+<h2>3.3 Git 集成最佳实践</h2>
+
+<pre><code># 每次 AI 生成代码后，养成习惯：
+1. 先审查代码（逐行看）
+2. 本地运行测试
+3. git add + commit 后再进入下一步
+4. commit message 注明 AI 参与了哪些修改</code></pre>
+
+<p>这样出了问题可以 git bisect 快速定位，也方便回滚。</p>
+
+<!-- ========== 第四章 ========== -->
+<h1>四、项目级 AI 协作工作流</h1>
+
+<h2>4.1 从需求到上线的完整流程</h2>
+
+<div class="tip-box">
+  <strong>📋 标准流程：</strong><br>
+  需求分析 → 架构设计 → 代码生成 → 审查 → 测试 → 迭代 → 上线
+</div>
+
+<h3>阶段 1：需求分析</h3>
+<pre><code>提示词：
+"我需要一个{项目描述}，目标用户是{用户群体}，
+核心功能是{功能1、2、3}。请帮我：
+1. 列出用户故事（User Stories）
+2. 列出非功能需求（性能、安全等）
+3. 列出 MVP 范围（最小可发布版本）
+4. 列出后续迭代方向"</code></pre>
+
+<h3>阶段 2：架构设计</h3>
+<pre><code>提示词：
+"基于以下需求：{粘贴需求分析}，请帮我设计：
+1. 技术选型及理由
+2. 模块划分（包含依赖关系图）
+3. 数据模型设计
+4. API 接口设计
+5. 目录结构
+请先给出方案，我确认后再细化。"</code></pre>
+
+<h3>阶段 3：代码生成（按模块逐个来）</h3>
+<pre><code>提示词：
+"请先实现数据模型层。
+技术栈：{列出}
+参考项目现有代码风格：{粘贴示例}
+输出：完整代码 + 说明"</code></pre>
+
+<h3>阶段 4：审查与测试</h3>
+<pre><code>提示词：
+"请作为代码审查员，审查以下代码：
+1. 是否存在安全风险？
+2. 是否有性能问题？
+3. 是否符合项目规范？
+4. 是否有更好的写法？
+5. 请生成对应的单元测试"</code></pre>
+
+<h2>4.2 多 Agent 协作模式</h2>
+
+<p>对于大型项目，可以同时启动多个 AI 对话，分工协作：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>角色</th>
+      <th>负责内容</th>
+      <th>对话方式</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>架构 Agent</strong></td>
+      <td>整体设计、技术方案</td>
+      <td>一次对话定方案</td>
+    </tr>
+    <tr>
+      <td><strong>前端 Agent</strong></td>
+      <td>UI 组件、状态管理</td>
+      <td>按组件逐个生成</td>
+    </tr>
+    <tr>
+      <td><strong>后端 Agent</strong></td>
+      <td>API、数据库、业务逻辑</td>
+      <td>按接口逐个生成</td>
+    </tr>
+    <tr>
+      <td><strong>测试 Agent</strong></td>
+      <td>单元测试、集成测试</td>
+      <td>拿到代码后自动测试</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="success-box">
+  <strong>💡 实际场景：</strong>你在一个对话里让 AI 设计架构，在另一个对话里让同一个 AI 生成 UI 代码，在第三个对话里让它审查后端代码。三个对话独立运行，互不干扰。
+</div>
+
+<!-- ========== 第五章 ========== -->
+<h1>五、代码质量与安全</h1>
+
+<h2>5.1 AI 生成代码的六大必查项</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">#</th>
+      <th style="width:25%">检查项</th>
+      <th>说明</th>
+      <th style="width:15%">严重程度</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>API 密钥泄露</td>
+      <td>硬编码的密钥、Token 必须抽离到环境变量</td>
+      <td style="color:#e53e3e">🔴 高</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>SQL 注入</td>
+      <td>拼接 SQL 字符串而非使用参数化查询</td>
+      <td style="color:#e53e3e">🔴 高</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>XSS 漏洞</td>
+      <td>直接渲染用户输入未转义</td>
+      <td style="color:#e53e3e">🔴 高</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>异常处理缺失</td>
+      <td>try-catch 不完整，静默吞掉异常</td>
+      <td style="color:#d69e2e">🟡 中</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>类型安全问题</td>
+      <td>使用 any、dynamic 导致运行时崩溃</td>
+      <td style="color:#d69e2e">🟡 中</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>性能隐患</td>
+      <td>N+1 查询、未缓存的重复计算</td>
+      <td style="color:#38a169">🟢 低</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5.2 安全最佳实践</h2>
+
+<div class="danger-box">
+  <strong>🚫 绝对不要做：</strong><br>
+  - 把 AI 生成代码中的 API 密钥直接提交到 Git<br>
+  - 把生产环境数据库密码告诉 AI<br>
+  - 让 AI 访问你的真实用户数据
+</div>
+
+<div class="success-box">
+  <strong>✅ 应该这样做：</strong><br>
+  - 使用测试数据（伪造数据）让 AI 生成代码<br>
+  - 密钥全部走环境变量 / 密钥管理服务<br>
+  - 用 <code>.env.example</code> 文件展示密钥格式，不填真实值
+</div>
+
+<h2>5.3 让 AI 做代码审查</h2>
+
+<p>每次 AI 生成代码后，再给它一段审查提示词：</p>
+
+<pre><code>"请审查以下代码，重点关注：
+1. 安全风险（注入、XSS、CSRF 等）
+2. 边界条件处理（空值、越界、超时）
+3. 性能问题（循环内查询、不必要的计算）
+4. 代码风格一致性
+5. 是否有更优实现方案
+请逐条列出问题和建议。"</code></pre>
+
+<!-- ========== 第六章 ========== -->
+<h1>六、常见陷阱与避坑指南</h1>
+
+<h2>6.1 新手最常犯的 8 个错误</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>错误</th>
+      <th>后果</th>
+      <th>正确做法</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>一次给太多需求</strong></td>
+      <td>AI 输出混乱，部分功能被忽略</td>
+      <td>拆成小步骤，逐个完成</td>
+    </tr>
+    <tr>
+      <td><strong>不审查直接运行</strong></td>
+      <td>Bug 多，调试成本高</td>
+      <td>逐行审查 + 单元测试</td>
+    </tr>
+    <tr>
+      <td><strong>不更新上下文</strong></td>
+      <td>AI 用旧代码生成新代码</td>
+      <td>每次对话都告知当前项目状态</td>
+    </tr>
+    <tr>
+      <td><strong>过度依赖一个工具</strong></td>
+      <td>工具限制 = 你的上限</td>
+      <td>多工具交叉验证</td>
+    </tr>
+    <tr>
+      <td><strong>不写测试</strong></td>
+      <td>改了一处，坏了三处</td>
+      <td>AI 写测试，你验证测试</td>
+    </tr>
+    <tr>
+      <td><strong>不学基础</strong></td>
+      <td>无法审查 AI 代码</td>
+      <td>基础能力是审查能力的底气</td>
+    </tr>
+    <tr>
+      <td><strong>复制粘贴不读</strong></td>
+      <td>引入无用代码、安全风险</td>
+      <td>每行代码都要理解</td>
+    </tr>
+    <tr>
+      <td><strong>不保留版本</strong></td>
+      <td>改乱了无法回退</td>
+      <td>频繁 commit，善用 Git</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6.2 "AI 幻觉" 应对策略</h2>
+
+<p>AI 有时会"一本正经地胡说八道"——引用不存在的 API、编造不存在的库。</p>
+
+<pre><code>应对方法：
+1. 对 AI 输出的 API/库/版本做验证（查官方文档）
+2. 让 AI 给出代码后，用 `dart pub deps` / `npm list` 验证
+3. 如果编译报错，把错误信息丢给 AI 让它修复
+4. 重要功能先用最小 demo 验证思路，再集成</code></pre>
+
+<div class="warning-box">
+  <strong>⚠️ 记住：</strong>AI 说"这个 API 存在于 Flutter 3.24"——你去 dart.dev 查一下再相信。
+</div>
+
+<!-- ========== 第七章 ========== -->
+<h1>七、进阶：Agent 与 MCP</h1>
+
+<h2>7.1 MCP（模型上下文协议）</h2>
+
+<p>MCP 让 AI 能访问外部工具和数据源。相当于给 AI 装上"手和脚"：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>能力</th>
+      <th>说明</th>
+      <th>示例 MCP</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>📁 文件系统</td>
+      <td>读写项目文件</td>
+      <td>filesystem MCP</td>
+    </tr>
+    <tr>
+      <td>🗄️ 数据库</td>
+      <td>查询/操作数据库</td>
+      <td>postgres MCP</td>
+    </tr>
+    <tr>
+      <td>🔧 终端</td>
+      <td>执行命令行命令</td>
+      <td>shell MCP</td>
+    </tr>
+    <tr>
+      <td>🌐 网络</td>
+      <td>调用 API / 爬取数据</td>
+      <td>web-fetch MCP</td>
+    </tr>
+    <tr>
+      <td>📊 代码分析</td>
+      <td>静态分析 / 重构</td>
+      <td>eslint MCP</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>7.2 Skills（技能定义）</h2>
+
+<p>Skills 是用 Markdown 文件定义的"专家模式"：</p>
+
+<pre><code># skills/database/SKILL.md
+# 数据库专家
+当你处理数据库相关问题时，遵循以下规范：
+1. 使用参数化查询防止 SQL 注入
+2. 每个查询必须有超时限制（30s）
+3. 数据库迁移使用 migration 文件管理
+4. 索引设计原则：...
+5. 连接池大小 = CPU 核心数 × 2</code></pre>
+
+<p>配置后，当你讨论数据库问题时，AI 会自动应用这些规则。</p>
+
+<h2>7.3 Hooks（自动化钩子）</h2>
+
+<p>让 AI 在特定操作时自动执行任务：</p>
+
+<pre><code>{
+  "onSave": [
+    "npx prettier --write {file}",
+    "npx eslint --fix {file}"
+  ],
+  "beforeCommit": [
+    "npm test",
+    "git diff --stat"
+  ]
+}</code></pre>
+
+<!-- ========== 第八章 ========== -->
+<h1>八、工具选型与对比</h1>
+
+<h2>8.1 2026 主流 AI 编程工具对比</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>工具</th>
+      <th>类型</th>
+      <th>价格</th>
+      <th>优势</th>
+      <th>劣势</th>
+      <th>适合谁</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Cursor</strong></td>
+      <td>IDE（VS Code fork）</td>
+      <td>$0~$60/月</td>
+      <td>模型灵活、Composer 多文件编辑、MCP 支持</td>
+      <td>高级功能需付费</td>
+      <td>全栈开发者</td>
+    </tr>
+    <tr>
+      <td><strong>Trae</strong></td>
+      <td>IDE（VS Code fork）</td>
+      <td>免费</td>
+      <td>中文最佳、免费、Builder 模式一键生成</td>
+      <td>生态较新</td>
+      <td>中文开发者、初学者</td>
+    </tr>
+    <tr>
+      <td><strong>Windsurf</strong></td>
+      <td>IDE（VS Code fork）</td>
+      <td>$0~$20/月</td>
+      <td>Flow 模式流程引导、补全速度快</td>
+      <td>团队版调整中</td>
+      <td>前端、全栈开发</td>
+    </tr>
+    <tr>
+      <td><strong>Copilot</strong></td>
+      <td>IDE 插件</td>
+      <td>$10/月</td>
+      <td>生态最广、IDE 兼容性好</td>
+      <td>独立能力弱，依赖宿主 IDE</td>
+      <td>已有 IDE 的用户</td>
+    </tr>
+    <tr>
+      <td><strong>Claude Code</strong></td>
+      <td>CLI Agent</td>
+      <td>按量计费</td>
+      <td>推理最强、代码质量最高</td>
+      <td>命令行操作，学习曲线</td>
+      <td>后端、架构师</td>
+    </tr>
+    <tr>
+      <td><strong>OpenClaw</strong></td>
+      <td>AI Agent 平台</td>
+      <td>免费/开源</td>
+      <td>本地部署、支持自定义模型、MCP + Skills</td>
+      <td>文档和社区较新</td>
+      <td>注重隐私、想自定</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>8.2 针对 Flutter/Android 开发的推荐组合</h2>
+
+<div class="success-box">
+  <strong>🏆 最佳实践组合：</strong><br><br>
+  <strong>方案 A（推荐）：</strong>Cursor（写代码）+ 本地模型（省钱）+ Android Studio（编译调试）<br>
+  <strong>方案 B（免费）：</strong>Trae 基础版 + 本地模型<br>
+  <strong>方案 C（最强）：</strong>Claude Code（架构）+ Cursor（日常）+ Android Studio
+</div>
+
+<!-- ========== 第九章 ========== -->
+<h1>九、AI 编程 Checklist</h1>
+
+<p>每次使用 AI 辅助编程时，按这个清单逐项检查：</p>
+
+<h3>🔵 写提示词之前</h3>
+<ul>
+  <td>□</td> <td>我是否已经理解了需求的完整范围？</td>
+</ul>
+<ul>
+  <td>□</td> <td>我是否准备好了上下文（技术栈、代码示例、项目规范）？</td>
+</ul>
+<ul>
+  <td>□</td> <td>这个需求是否可以拆成更小的步骤？</td>
+</ul>
+
+<h3>🟡 收到 AI 输出后</h3>
+<ul>
+  <td>□</td> <td>我逐行审查了代码吗？</td>
+</ul>
+<ul>
+  <td>□</td> <td>API 调用是否正确？版本是否匹配？</td>
+</ul>
+<ul>
+  <td>□</td> <td>有没有安全漏洞（密钥泄露、注入）？</td>
+</ul>
+<ul>
+  <td>□</td> <td>有没有多余的、不需要的代码？</td>
+</ul>
+<ul>
+  <td>□</td> <td>错误处理是否完整？</td>
+</ul>
+<ul>
+  <td>□</td> <td>代码风格是否符合项目规范？</td>
+</ul>
+
+<h3>🟢 运行和测试后</h3>
+<ul>
+  <td>□</td> <td>本地编译/运行成功了吗？</td>
+</ul>
+<ul>
+  <td>□</td> <td>单元测试通过了吗？</td>
+</ul>
+<ul>
+  <td>□</td> <td>Edge case（边界条件）测试了吗？</td>
+</ul>
+<ul>
+  <td>□</td> <td>git commit 了吗？</td>
+</ul>
+<ul>
+  <td>□</td> <td>更新了项目文档吗？</td>
+</ul>
+
+<hr>
+
+<div class="tip-box" style="margin-top:40px;">
+  <strong>📌 最后的话</strong><br><br>
+  AI 编程工具再强大，也改变不了一个事实：<strong>好软件需要时间打磨</strong>。<br><br>
+  AI 帮你省掉了从 0 到 1 的枯燥工作，但 1 到 100 的优化、打磨、测试，<br>
+  依然需要你亲自动手。<br><br>
+  <strong>把 AI 当助手，不是替代品。慢慢来，享受过程。</strong>
+</div>
+
+<div class="cover-meta" style="text-align:center; margin-top:40px; color:#a0aec0;">
+  — 本指南由 AI 辅助生成，人类审查 —<br>
+  2026 年 6 月
+</div>
+
+</body>
+</html>
