@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ai_travel_ledger/data/models/expense.dart';
 import 'package:ai_travel_ledger/data/models/group.dart';
 import 'package:ai_travel_ledger/data/models/member.dart';
 import 'package:ai_travel_ledger/data/models/trip.dart';
@@ -14,6 +15,7 @@ void main() {
   late Box<Trip> tripsBox;
   late Box<Member> membersBox;
   late Box<TripGroup> groupsBox;
+  late Box<Expense> expensesBox;
 
   setUpAll(() async {
     tmpDir = Directory.systemTemp.createTempSync('hive_trip_provider_');
@@ -30,8 +32,17 @@ void main() {
     if (!Hive.isAdapterRegistered(3)) {
       Hive.registerAdapter(TripGroupAdapter());
     }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(ExpenseAdapter());
+    }
     if (!Hive.isAdapterRegistered(10)) {
       Hive.registerAdapter(GroupTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter(ExpenseCategoryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(12)) {
+      Hive.registerAdapter(SyncStatusAdapter());
     }
     if (!Hive.isAdapterRegistered(13)) {
       Hive.registerAdapter(MemberRoleAdapter());
@@ -43,12 +54,14 @@ void main() {
     tripsBox = await Hive.openBox<Trip>('trips_$ts');
     membersBox = await Hive.openBox<Member>('members_$ts');
     groupsBox = await Hive.openBox<TripGroup>('groups_$ts');
+    expensesBox = await Hive.openBox<Expense>('expenses_$ts');
   });
 
   tearDown(() async {
     await tripsBox.close();
     await membersBox.close();
     await groupsBox.close();
+    await expensesBox.close();
   });
 
   tearDownAll(() async {
@@ -64,6 +77,7 @@ void main() {
             trips: tripsBox,
             members: membersBox,
             groups: groupsBox,
+            expenses: expensesBox,
           ),
         ),
       ],

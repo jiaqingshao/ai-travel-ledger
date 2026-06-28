@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:hive/hive.dart';
 
 import 'member.dart';
@@ -140,6 +142,22 @@ class SplitRule {
     }
     return result;
   }
+
+  /// 便利工厂：默认均摊（指定若干成员）
+  factory SplitRule.equal(List<String> memberIds) => SplitRule(
+        type: 'equal',
+        participants: memberIds
+            .map((id) => <String, dynamic>{'type': 'member', 'id': id})
+            .toList(),
+      );
+
+  /// 便利工厂：默认均摊整个组
+  factory SplitRule.equalGroup(String groupId) => SplitRule(
+        type: 'equal',
+        participants: <Map<String, dynamic>>[
+          <String, dynamic>{'type': 'group', 'id': groupId}
+        ],
+      );
 }
 
 @HiveType(typeId: 4)
@@ -216,11 +234,13 @@ class Expense extends HiveObject {
   }
 
   static Map<String, dynamic> _parseJson(String s) {
-    // 简化版，实际用 dart:convert
-    return {};
+    if (s.isEmpty) return <String, dynamic>{};
+    final decoded = jsonDecode(s);
+    if (decoded is Map<String, dynamic>) return decoded;
+    return <String, dynamic>{};
   }
 
   static String _stringifyJson(Map<String, dynamic> m) {
-    return '';
+    return jsonEncode(m);
   }
 }

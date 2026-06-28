@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'data/models/expense.dart';
 import 'data/models/group.dart';
 import 'data/models/member.dart';
 import 'data/models/trip.dart';
@@ -20,8 +21,15 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(TripAdapter());
   if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(MemberAdapter());
   if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(TripGroupAdapter());
+  if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(ExpenseAdapter());
   if (!Hive.isAdapterRegistered(10)) {
     Hive.registerAdapter(GroupTypeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(11)) {
+    Hive.registerAdapter(ExpenseCategoryAdapter());
+  }
+  if (!Hive.isAdapterRegistered(12)) {
+    Hive.registerAdapter(SyncStatusAdapter());
   }
   if (!Hive.isAdapterRegistered(13)) {
     Hive.registerAdapter(MemberRoleAdapter());
@@ -31,6 +39,7 @@ Future<void> main() async {
   final tripsBox = await Hive.openBox<Trip>('trips');
   final membersBox = await Hive.openBox<Member>('members');
   final groupsBox = await Hive.openBox<TripGroup>('groups');
+  final expensesBox = await Hive.openBox<Expense>('expenses');
 
   runApp(
     ProviderScope(
@@ -40,6 +49,7 @@ Future<void> main() async {
             trips: tripsBox,
             members: membersBox,
             groups: groupsBox,
+            expenses: expensesBox,
           ),
         ),
       ],

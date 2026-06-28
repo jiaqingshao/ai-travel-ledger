@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import '../../data/models/group.dart';
 import '../../data/models/member.dart';
 import '../../data/models/trip.dart';
+import '../providers/expense_provider.dart';
 import '../providers/group_provider.dart';
 import '../providers/member_provider.dart';
 import '../providers/trip_provider.dart';
+import 'expense_list_screen.dart';
 import 'group_manage_screen.dart';
 import 'member_manage_screen.dart';
 import 'trip_edit_screen.dart';
@@ -185,7 +187,7 @@ class TripDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const _ComingSoonCard(),
+          _ExpenseEntryCard(tripId: tripId),
         ],
       ),
     );
@@ -372,26 +374,61 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-class _ComingSoonCard extends StatelessWidget {
-  const _ComingSoonCard();
+class _ExpenseEntryCard extends ConsumerWidget {
+  const _ExpenseEntryCard({required this.tripId});
+  final String tripId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalAsync = ref.watch(totalByTripProvider(tripId));
+    final total = totalAsync.maybeWhen(
+      data: (v) => v,
+      orElse: () => 0.0,
+    );
+    final df = NumberFormat('#,##0.00');
     return Card(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: const Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.hourglass_empty, color: Colors.grey),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'E-002 记账 / E-003 分摊 即将上线',
-                style: TextStyle(color: Colors.grey),
-              ),
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ExpenseListScreen(tripId: tripId),
             ),
-          ],
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Icons.receipt_long, size: 32),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '账本',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '总支出 ¥ ${df.format(total)}',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward, color: Colors.grey),
+            ],
+          ),
         ),
       ),
     );

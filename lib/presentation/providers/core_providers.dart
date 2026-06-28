@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
+import '../../data/models/expense.dart';
 import '../../data/models/group.dart';
 import '../../data/models/member.dart';
 import '../../data/models/trip.dart';
@@ -14,11 +15,13 @@ class HiveBoxes {
     required this.trips,
     required this.members,
     required this.groups,
+    required this.expenses,
   });
 
   final Box<Trip> trips;
   final Box<Member> members;
   final Box<TripGroup> groups;
+  final Box<Expense> expenses;
 }
 
 final hiveBoxesProvider = Provider<HiveBoxes>((ref) {
