@@ -189,6 +189,8 @@ body::before {
 
 /* ========== 主区 ========== */
 .board-wrap {
+  position: relative; /* 修复：让 .dev-overlay 的 absolute 定位以 board-wrap 为基准，
+                          而不是误以为整个 .app 为基准 → 避免覆盖范围错误 */
   display: grid;
   grid-template-columns: 1fr 280px;
   gap: 18px;
@@ -223,18 +225,30 @@ body::before {
     inset 0 0 40px rgba(0, 0, 0, 0.18);
 }
 
+/* 修复 v1.0.1 BUG-001 (真实浏览器回归)
+ * 之前用 `aspect-ratio: 1/1` + `height: auto` + `width: 100%`，依赖浏览器
+ * 对 replaced element (canvas) 的固有 ratio 行为。在某些 Chromium 版本 + 高
+ * DPI / 缩放 / 字体加载时，CSS 高度会被回退到 canvas 固有 height (760) 而忽略
+ * aspect-ratio，导致 canvas 的 getBoundingClientRect() 与 canvas.width 不一致，
+ * scaleX ≠ 1，真实点击向右偏移最多 ~2 格。
+ *
+ * 新方案：去掉 aspect-ratio，由 JS 在 syncCanvasSize() 中根据实际内容盒宽度
+ * 直接写入 canvas.style.height = canvas.clientWidth + 'px'，保证 canvas CSS
+ * 盒始终是严格的正方形，并且 canvas.width === clientWidth 时 scaleX = 1。
+ */
 #board {
   display: block;
   width: 100%;
-  height: auto;
+  height: 760px; /* JS 首次调用 syncCanvasSize 后会被覆盖 */
   max-width: 760px;
-  aspect-ratio: 1 / 1;
   margin: 0 auto;
   cursor: none;
   border-radius: 6px;
 }
 
 /* 悬浮预览棋子 */
+/* hover-stone 修正：把 center 修正到鼠标点击位置 (而不是 -14px 偏移)
+   现在 left/top 由 JS 直接写入 "鼠标相对 canvas 的像素位置 - halfStone"，更精确 */
 .hover-stone {
   position: absolute;
   width: 28px;
@@ -242,7 +256,9 @@ body::before {
   border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  transform: translate(-50%, -50%);
+  /* 不再用 transform: translate(-50%, -50%)，JS 直接写 centered 坐标 */
+  left: 0;
+  top: 0;
   transition: opacity 0.12s ease;
   z-index: 5;
 }
@@ -276,6 +292,10 @@ body::before {
 }
 
 /* ========== 中央开发者信息覆盖层 ========== */
+/* 修复 v1.0.1 BUG-001: dev-overlay 的 <pre> 默认 pointer-events: auto，
+   因为 pointer-events 不继承自父级。这会让用户点击 pre 区域时被 pre 截获，
+   看起来像"点击没反应"或"下子位置错乱"——尤其在 pre 覆盖在棋盘上方时。
+   显式继承 pointer-events: none 确保 click 一定能透传到 canvas。 */
 .dev-overlay {
   position: absolute;
   inset: 0;
@@ -299,6 +319,8 @@ body::before {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   white-space: pre;
+  pointer-events: none; /* 关键：让 click 穿透到 canvas */
+  user-select: none;
 }
 
 .dev-overlay.hidden pre {
