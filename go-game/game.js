@@ -16,6 +16,10 @@
  *            · 新增 touchstart 触屏事件支持
  *            · 强化防御性：Number.isFinite 防护 NaN/类型异常
  *            · touchstart 提前 preventDefault 防止 click 双触发
+ *   v1.0.2 - BUG-002 修复：
+ *            · 锁定 canvas CSS 尺寸 = 逻辑尺寸
+ *            · 修复浏览器缩放（Ctrl+/-）下点击偏移问题
+ *            · 添加 dpr 缩放注释，避免未来回归
  * ===================================================== */
 
 (() => {
@@ -26,7 +30,18 @@
   const BLACK = 1;
   const WHITE = 2;
 
-  const VERSION = "v1.0.1";
+  const VERSION = "v1.0.2";
+
+  // ============== BUG-002 修复：锁定画布 CSS 尺寸 ==============
+  // 原因：浏览器缩放（Ctrl+/-）或窗口大小变化时，canvas.getBoundingClientRect()
+  //       返回的 width 会变化，但 canvas.width 固定。这会导致 scaleX 计算错误。
+  // 方案：将画布的 CSS 尺寸锁定为逻辑尺寸，使视觉尺寸与逻辑尺寸严格一致。
+  // 注：如未来需要支持高 DPI 缩放，请使用 devicePixelRatio 同步修改 canvas.width
+  //     和 canvas.style.width（参见 BUG-002 复盘）。
+  function lockCanvasSize(canvas) {
+    canvas.style.width = canvas.width + "px";
+    canvas.style.height = canvas.height + "px";
+  }
 
   // ============== 状态 ==============
   const state = {
@@ -58,6 +73,8 @@
     state.lastMove = null;
     state.koPoint = null;
     state.passes = 0;
+    // BUG-002 修复：锁定 canvas CSS 尺寸，避免浏览器缩放影响落子
+    lockCanvasSize(canvas);
     renderAll();
   }
 
