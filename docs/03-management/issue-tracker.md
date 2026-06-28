@@ -22,6 +22,11 @@
 | **P3 轻微** | 2 | 0 | 0 | 2 |
 | **总计** | **9** | **2** | **2** | **5** |
 
+**最近重要里程碑**：
+- 🎯 **2026-06-28 21:32** dev Agent 完成真实浏览器集成测试 + 6 大根因修复（commit 251a681），407/407 PASS
+
+---
+
 ---
 
 ## 二、问题清单（按时间倒序）
@@ -35,24 +40,32 @@
 | **模块** | go-game（围棋）|
 | **报告时间** | 2026-06-28 21:05 |
 | **报告人** | 用户（实测）|
-| **修复时间** | 2026-06-28 21:28 |
-| **修复人** | PM（dev Agent LLM API hang 后接手）；21:26 dev Agent 从 hang 恢复后补充 lockCanvasSize（commit 94f390a）|
+| **修复时间** | 2026-06-28 21:32 |
+| **修复人** | PM（主修） + dev Agent（真实浏览器集成测试 + 6 大根因修复）|
 | **状态** | ✅ 已修复 |
-| **Commit** | `072fb0b`（主修复，相对位置算法）+ `a1d79b8` + `94f390a`（lockCanvasSize 辅助）|
+| **Commit** | `072fb0b`（PM 相对位置算法）+ `a1d79b8` + `94f390a`（lockCanvasSize 辅助）+ `251a681`（dev 真实浏览器集成测试 + 6 大根因修复 v1.0.2）|
 
-**根因**：
-`eventToCell()` 中 `scaleX = canvas.width / rect.width`，但浏览器缩放时 `rect.width` 变化，`canvas.width` 固定，导致缩放后落子点偏移。
-
-**修复方案**：
+**PM 修复**：
 - 改用**相对位置 × 逻辑尺寸**算法：`relX = (clientX - rect.left) / rect.width; px = relX * canvas.width`
 - 保留 `lockCanvasSize()` 作为防御性辅助
 - 版本 v1.0.1 → v1.0.2
+- Node 模拟 100%/125%/90%/75%/50% zoom PASS
 
-**验证（Node 模拟）**：
-- 100% / 125% / 90% / 75% zoom 下 A10 → col=0 PASS
-- 100% / 125% / 50% zoom 下 K10 → col=9 PASS
+**dev Agent 集成测试 + 修复**（commit 251a681）：
+1. CSS aspect-ratio 在某些 Chromium 被忽略 → 删 aspect-ratio，JS syncCanvasSize() 强锁尺寸
+2. `.dev-overlay <pre>` 拦截 click → pointer-events: none
+3. `.board-wrap` 缺 position: relative → 补上
+4. `.hover-stone` 视觉偏移 ~14px → 移 transform，手算 left/top
+5. eventToCell 改用 offsetX/offsetY 优先 + 三重 fallback
+6. 新增 ResizeObserver + window resize + orientationchange + fonts.ready 多重监听
 
-**用户验收**：⏳ 待用户在浏览器实测确认
+**dev Agent 测试覆盖**：407/407 = 100% PASS
+- test_qa.js: 30/30
+- test_qa_v2.js: 15/15
+- test_qa_v101.js: 12/12
+- test_browser_integration.js (Playwright 真实 Chromium): 350/350
+
+**用户验收**：⏳ 待用户在真实浏览器实测确认
 
 ---
 
@@ -315,8 +328,8 @@
 
 | 修复者 | 修复数 | 占比 |
 |---|---|---|
-| PM 直修 | 1 | 50% |
-| dev Agent | 1 | 50% |
+| PM 直修 | 1 | 33% |
+| dev Agent | 2 | 67% |
 | qa Agent | 0 | 0% |
 | 用户手动绕过 | 1 | (Gateway 重启) |
 
