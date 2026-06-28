@@ -36,9 +36,9 @@
 | **报告时间** | 2026-06-28 21:05 |
 | **报告人** | 用户（实测）|
 | **修复时间** | 2026-06-28 21:28 |
-| **修复人** | PM（dev Agent LLM API hang 后接手）|
+| **修复人** | PM（dev Agent LLM API hang 后接手）；21:26 dev Agent 从 hang 恢复后补充 lockCanvasSize（commit 94f390a）|
 | **状态** | ✅ 已修复 |
-| **Commit** | `072fb0b`（主修复）+ `a1d79b8`（辅助修复）|
+| **Commit** | `072fb0b`（主修复，相对位置算法）+ `a1d79b8` + `94f390a`（lockCanvasSize 辅助）|
 
 **根因**：
 `eventToCell()` 中 `scaleX = canvas.width / rect.width`，但浏览器缩放时 `rect.width` 变化，`canvas.width` 固定，导致缩放后落子点偏移。
