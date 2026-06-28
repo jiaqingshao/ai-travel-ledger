@@ -10,6 +10,19 @@
 | **版本** | v0.1 |
 | **创建日期** | 2026-06-14 |
 | **目标平台** | Android 首发，iOS (V1.1) |
+| **Git Commits** | 11 个（main 分支）|
+
+## 🐛 问题跟踪
+
+所有问题统一在 **[`docs/03-management/issue-tracker.md`](docs/03-management/issue-tracker.md)** 跟踪管理。
+
+| 状态 | 数量 | 详情 |
+|---|---|---|
+| ✅ 已修复 | 2 | BUG-001（坐标偏移）、BUG-002（浏览器缩放）|
+| 🔧 修复中 | 2 | Gateway 重启、wecom 93006 |
+| ⏳ 待处理 | 5 | GitHub 仓库、context_token、LLM hang、message 工具、图片 API |
+
+> **查阅入口**：[Issue Tracker](./docs/03-management/issue-tracker.md) · [故障日志](./docs/03-management/event-log.md) · [风险登记](./docs/03-management/risk-register.md)
 
 ## 一句话定位
 
