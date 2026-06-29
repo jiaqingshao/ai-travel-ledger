@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:ai_travel_ledger/data/models/expense.dart';
 import 'package:ai_travel_ledger/data/models/group.dart';
 import 'package:ai_travel_ledger/data/models/member.dart';
+import 'package:ai_travel_ledger/data/models/transfer_record.dart';
 import 'package:ai_travel_ledger/data/models/trip.dart';
 import 'package:ai_travel_ledger/presentation/providers/core_providers.dart';
 import 'package:ai_travel_ledger/presentation/providers/expense_provider.dart';
@@ -17,6 +18,7 @@ void main() {
   late Box<Member> membersBox;
   late Box<TripGroup> groupsBox;
   late Box<Expense> expensesBox;
+  late Box<TransferRecord> transferRecordsBox;
 
   setUpAll(() async {
     tmpDir = Directory.systemTemp.createTempSync('hive_expense_provider_');
@@ -48,6 +50,9 @@ void main() {
     if (!Hive.isAdapterRegistered(13)) {
       Hive.registerAdapter(MemberRoleAdapter());
     }
+    if (!Hive.isAdapterRegistered(14)) {
+      Hive.registerAdapter(TransferRecordAdapter());
+    }
   });
 
   setUp(() async {
@@ -56,6 +61,7 @@ void main() {
     membersBox = await Hive.openBox<Member>('members_$ts');
     groupsBox = await Hive.openBox<TripGroup>('groups_$ts');
     expensesBox = await Hive.openBox<Expense>('expenses_$ts');
+    transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records_$ts');
   });
 
   tearDown(() async {
@@ -63,6 +69,7 @@ void main() {
     await membersBox.close();
     await groupsBox.close();
     await expensesBox.close();
+    await transferRecordsBox.close();
   });
 
   tearDownAll(() async {
@@ -79,6 +86,7 @@ void main() {
             members: membersBox,
             groups: groupsBox,
             expenses: expensesBox,
+            transferRecords: transferRecordsBox,
           ),
         ),
       ],

@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import '../../data/models/expense.dart';
 import '../../data/models/group.dart';
 import '../../data/models/member.dart';
+import '../../data/models/transfer_record.dart';
 import '../../data/models/trip.dart';
 
 /// 集中管理 Hive Boxes。
@@ -16,12 +17,14 @@ class HiveBoxes {
     required this.members,
     required this.groups,
     required this.expenses,
+    required this.transferRecords,
   });
 
   final Box<Trip> trips;
   final Box<Member> members;
   final Box<TripGroup> groups;
   final Box<Expense> expenses;
+  final Box<TransferRecord> transferRecords;
 }
 
 final hiveBoxesProvider = Provider<HiveBoxes>((ref) {

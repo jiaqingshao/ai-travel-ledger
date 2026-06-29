@@ -12,6 +12,7 @@ import '../providers/trip_provider.dart';
 import 'expense_list_screen.dart';
 import 'group_manage_screen.dart';
 import 'member_manage_screen.dart';
+import 'settlement_screen.dart';
 import 'trip_edit_screen.dart';
 
 /// 旅程详情 / Dashboard
@@ -188,6 +189,8 @@ class TripDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           _ExpenseEntryCard(tripId: tripId),
+          const SizedBox(height: 16),
+          _SettlementEntryCard(tripId: tripId),
         ],
       ),
     );
@@ -427,6 +430,61 @@ class _ExpenseEntryCard extends ConsumerWidget {
                 ),
               ),
               const Icon(Icons.arrow_forward, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 结算入口卡片（接入 SettlementScreen）
+class _SettlementEntryCard extends ConsumerWidget {
+  const _SettlementEntryCard({required this.tripId});
+  final String tripId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SettlementScreen(tripId: tripId),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.calculate_outlined, size: 32),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '结算',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '最优转账建议 · 标记已结清',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward, color: Colors.grey),
             ],
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'data/models/expense.dart';
 import 'data/models/group.dart';
 import 'data/models/member.dart';
+import 'data/models/transfer_record.dart';
 import 'data/models/trip.dart';
 import 'presentation/providers/core_providers.dart';
 import 'presentation/screens/trip_list_screen.dart';
@@ -34,12 +35,16 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(13)) {
     Hive.registerAdapter(MemberRoleAdapter());
   }
+  if (!Hive.isAdapterRegistered(14)) {
+    Hive.registerAdapter(TransferRecordAdapter());
+  }
 
   // 3. 打开 Boxes
   final tripsBox = await Hive.openBox<Trip>('trips');
   final membersBox = await Hive.openBox<Member>('members');
   final groupsBox = await Hive.openBox<TripGroup>('groups');
   final expensesBox = await Hive.openBox<Expense>('expenses');
+  final transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records');
 
   runApp(
     ProviderScope(
@@ -50,6 +55,7 @@ Future<void> main() async {
             members: membersBox,
             groups: groupsBox,
             expenses: expensesBox,
+            transferRecords: transferRecordsBox,
           ),
         ),
       ],
