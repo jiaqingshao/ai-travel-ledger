@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/models/trip.dart';
+import '../../data/seed_data.dart';
+import '../providers/core_providers.dart';
 import '../providers/trip_provider.dart';
 import 'ai_settings_screen.dart';
 import 'archived_trips_screen.dart';
@@ -30,6 +32,11 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
       appBar: AppBar(
         title: const Text('我的旅程'),
         actions: [
+          IconButton(
+            tooltip: '加载演示数据',
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: _loadDemoData,
+          ),
           IconButton(
             tooltip: '归档列表',
             icon: const Icon(Icons.inventory_2_outlined),
@@ -63,7 +70,7 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
           onRetry: () => ref.invalidate(activeTripsProvider),
         ),
         data: (trips) {
-          if (trips.isEmpty) return const _EmptyTripsView();
+          if (trips.isEmpty) return _EmptyTripsView(onLoadDemo: _loadDemoData);
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: trips.length,
@@ -131,6 +138,46 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
       await ref.read(tripNotifierProvider.notifier).archive(trip.id);
       ref.invalidate(activeTripsProvider);
     }
+  }
+
+  Future<void> _loadDemoData() async {
+    final boxes = ref.read(hiveBoxesProvider);
+    if (boxes.trips.isNotEmpty) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('已有数据'),
+          content: const Text(
+            '检测到现有旅程数据。\n'
+            '演示数据需要全新的数据库。\n\n'
+            '建议：在浏览器 DevTools → Application → Storage → Clear site data 后重启应用。\n\n'
+            '或者：你也可以手动浏览现有旅程（不加载演示）。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('明白了'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+      ref.invalidate(activeTripsProvider);
+      return;
+    }
+    DemoSeed.apply(boxes);
+    ref.invalidate(activeTripsProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✨ 演示数据已加载：京都·大阪赏樱 7 日'),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 }
 
@@ -238,7 +285,8 @@ class _StatusChip extends StatelessWidget {
 }
 
 class _EmptyTripsView extends StatelessWidget {
-  const _EmptyTripsView();
+  const _EmptyTripsView({required this.onLoadDemo});
+  final VoidCallback onLoadDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -260,6 +308,17 @@ class _EmptyTripsView extends StatelessWidget {
               '点击右下角 + 按钮创建你的第一个旅程',
               style: TextStyle(color: Colors.grey),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.tonalIcon(
+              onPressed: onLoadDemo,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('一键加载演示数据'),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '京都赏樱 7 日 · 3 成员 · 4 笔费用',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
