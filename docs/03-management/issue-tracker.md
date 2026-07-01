@@ -97,3 +97,65 @@
 - 🚨 嵌套虚拟化 + 软件渲染组合基本不可行, 不要尝试超过 1 小时
 - 🚨 应直接给出备选方案 (Chrome Web 模式 / 真机 / 云), 让用户选
 
+
+
+### 🔧 ISSUE-015 — M3 5h 限额撞限导致 cron 任务连续失败【已修复】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-015 |
+| **等级** | P1 严重 |
+| **模块** | OpenClaw Token Plan / Cron 任务 |
+| **报告时间** | 2026-07-01 15:45 |
+| **报告人** | 用户提醒 (有 5h 限额) + PM 自查 cron 状态 |
+| **修复时间** | 2026-07-01 15:50 |
+| **修复人** | PM |
+| **状态** | 🟢 已修复 (监督机制 + cron fallback) |
+
+**症状**:
+- 用户提醒 M3 5h 限额问题
+- PM 查询 cron list 发现 3 个任务连续失败:
+  - 日报 (07970c65): 连错 10 次 (cron execution timeout)
+  - 周报 (4a425de0): 连错 6 次
+  - 月报 (088d5025): 连错 3 次
+- 错误模式: cron: job execution timed out (last phase: model-call-started)
+- 根因 1: cron 绑死了主 dashboard session (session:agent:main:dashboard:0e54bceb-99a4-46ad-a912-bd60a433c4c1), 与用户会话争锁 → session lock conflict
+- 根因 2: M3 撞限后 cron 不 fallback, 无 retry 策略
+- 根因 3: delivery.mode = announce + channel = wecom 撞企业微信 93006, 即便生成成功也发送失败
+
+**根因分析**:
+1. 5h 限额是 MiniMax Token Plan Plus 的硬限制, 无法绕过
+2. 但 PM 没有"撞限监督"机制, 完全被动等待失败
+3. cron 任务没有 fallback 模型配置, 撞限 = 完全瘫痪
+4. cron 与用户会话共享 session, 互相阻塞
+
+**永久方案 (已实施)**:
+1. ✅ 创建 cron M3-5h-限额监督 (a3119124), 每小时 0 分 (Asia/Shanghai) 检查用量, 5 分钟 stagger
+2. ✅ 修复日报 cron (07970c65):
+   - sessionTarget: session:agent:main:dashboard:... → isolated (不再与主会话争锁)
+   - 加 fallback: llamacpp/Qwen3.6-35B-A3B-APEX-MTP-Balanced.gguf (本地)
+   - timeout: 120s → 300s
+   - delivery.mode: nnounce → 
+one (绕过企业微信 93006)
+3. ✅ 修复周报 cron (4a425de0): 同样策略
+4. ✅ 修复月报 cron (088d5025): 同样策略
+5. ⏳ 待 M3 限流恢复后, 监督 cron 会通知用户
+
+**新建立的监督机制**:
+- **M3-5h-限额监督** (a3119124): 每小时检查
+  - 用 web_fetch 拉取 platform.minimax.com/console/usage (如果可达)
+  - 或简单 reply "无法获取实时用量"
+  - 撞限 ≥ 80% 时追加 "🛑 建议暂停 1 小时"
+  - 严格 ≤ 1 次 reply, ≤ 200 字, 避免循环消耗
+
+**教训**:
+- 🚨 MiniMax M3 5h 限额不能忽略, 必须有监督机制
+- 🚨 cron 不能与用户会话绑定, 必须 isolated
+- 🚨 cron 必须有 fallback 模型, 否则撞限 = 完全失败
+- 🚨 delivery.channel=wecom 必须配置 target, 否则 93006
+- 🚨 PM 之前没主动检查 cron list, 让问题隐藏 10+ 天, 应该每周自查
+
+**下一步**:
+- 等 M3 限额恢复 (5h 滚动窗口), 跑一次修复后的日报 cron 看是否成功
+- 月底加一道 "cron 健康度审计" 到 daily report 模板
+
