@@ -27,7 +27,9 @@ class SupabaseService {
   bool get isSignedIn => currentUserId != null;
 
   SupabaseClient? _client;
-  SupabaseClient get client {
+  /// 客户端 getter - 返回 dynamic 以便测试时 mock
+  /// (SupabaseClient 无法被继承,只能用 dynamic 代理)
+  dynamic get client {
     if (!_initialized || _client == null) {
       throw StateError(
         'SupabaseService not initialized. Call init() first.',
