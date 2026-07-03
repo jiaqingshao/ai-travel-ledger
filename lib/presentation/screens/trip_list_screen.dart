@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import '../../data/models/trip.dart';
 import '../../data/seed_data.dart';
 import '../providers/core_providers.dart';
+import '../providers/sync_providers.dart';
 import '../providers/trip_provider.dart';
 import 'ai_settings_screen.dart';
 import 'archived_trips_screen.dart';
+import 'auth_screen.dart';
 import 'trip_create_screen.dart';
 import 'trip_detail_screen.dart';
 
@@ -28,10 +30,20 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
   Widget build(BuildContext context) {
     final activeTripsAsync = ref.watch(activeTripsProvider);
 
+    final auth = ref.watch(authStateProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('我的旅程'),
         actions: [
+          IconButton(
+            tooltip: auth.isSignedIn ? '同步中...' : '云端同步',
+            icon: Icon(
+              auth.isSignedIn ? Icons.cloud_done : Icons.cloud_sync_outlined,
+              color: auth.isSignedIn ? Colors.green : null,
+            ),
+            onPressed: _openAuth,
+          ),
           IconButton(
             tooltip: '加载演示数据',
             icon: const Icon(Icons.auto_awesome),
@@ -92,6 +104,18 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
         label: const Text('新建旅程'),
       ),
     );
+  }
+
+  void _openAuth() async {
+    final loggedIn = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
+    );
+    if (loggedIn == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 登录成功,数据即将同步')),
+      );
+    }
   }
 
   void _openCreate() async {

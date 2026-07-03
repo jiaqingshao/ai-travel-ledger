@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'core/supabase/supabase_service.dart';
 import 'data/models/expense.dart';
 import 'data/models/group.dart';
 import 'data/models/member.dart';
@@ -17,6 +18,9 @@ import 'presentation/screens/trip_list_screen.dart';
 /// AI 旅行账本 - 入口
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化 Supabase（如已配置；未配置则静默跳过,APP 以纯本地模式运行）
+  await SupabaseService.instance.init();
 
   await Hive.initFlutter();
 
