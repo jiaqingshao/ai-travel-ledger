@@ -87,9 +87,28 @@ class AITravelLedgerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7DD7), // 旅行蓝 (UI 设计稿 v0.1 §1)
+        colorScheme: const ColorScheme(
           brightness: Brightness.light,
+          primary: Color(0xFF2E7DD7), // 旅行蓝 (UI 设计稿 v0.1 §1)
+          onPrimary: Colors.white,
+          primaryContainer: Color(0xFFD8E8FB),
+          onPrimaryContainer: Color(0xFF001D36),
+          secondary: Color(0xFFF59E0B), // 暖阳橙
+          onSecondary: Colors.white,
+          secondaryContainer: Color(0xFFFFE0B2),
+          onSecondaryContainer: Color(0xFF291800),
+          tertiary: Color(0xFF10B981), // 草地绿 (成功)
+          onTertiary: Colors.white,
+          tertiaryContainer: Color(0xFFC9F2E0),
+          onTertiaryContainer: Color(0xFF002117),
+          error: Color(0xFFEF4444), // 落日红
+          onError: Colors.white,
+          errorContainer: Color(0xFFFFDAD6),
+          onErrorContainer: Color(0xFF410002),
+          surface: Color(0xFFFDFCFF),
+          onSurface: Color(0xFF1A1C1E),
+          surfaceContainerHighest: Color(0xFFEEF1F4),
+          outline: Color(0xFF73777F),
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
@@ -113,9 +132,28 @@ class AITravelLedgerApp extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7DD7),
+        colorScheme: const ColorScheme(
           brightness: Brightness.dark,
+          primary: Color(0xFF89B8F0),
+          onPrimary: Color(0xFF003258),
+          primaryContainer: Color(0xFF154878),
+          onPrimaryContainer: Color(0xFFD8E8FB),
+          secondary: Color(0xFFFFB95C),
+          onSecondary: Color(0xFF482900),
+          secondaryContainer: Color(0xFF683C00),
+          onSecondaryContainer: Color(0xFFFFE0B2),
+          tertiary: Color(0xFF8DD6BB),
+          onTertiary: Color(0xFF00382C),
+          tertiaryContainer: Color(0xFF005142),
+          onTertiaryContainer: Color(0xFFC9F2E0),
+          error: Color(0xFFFFB4AB),
+          onError: Color(0xFF690005),
+          errorContainer: Color(0xFF93000A),
+          onErrorContainer: Color(0xFFFFDAD6),
+          surface: Color(0xFF1A1C1E),
+          onSurface: Color(0xFFE2E2E5),
+          surfaceContainerHighest: Color(0xFF2A2D31),
+          outline: Color(0xFF8D9199),
         ),
       ),
       // 用 ?screen=trip_list|trip_detail|settlement|group_settlement 跳转
