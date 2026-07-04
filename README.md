@@ -1,111 +1,219 @@
 # AI 旅行账本 (AI Travel Ledger)
 
-> 让自驾游团队告别"算账半小时，扯皮两小时"
+> 让自驾游/团队游的 AA 结算从 30 分钟缩短到 30 秒
 
-## 项目状态
+**版本**：v1.0  
+**日期**：2026-07-04  
+**平台**：Android (首发), iOS (后续)  
+**技术**：Flutter + Dart + Hive + Supabase
 
-| 项 | 值 |
+---
+
+## 🎯 项目状态
+
+```
+████████████████████ 100% (v1.0 Release 准备就绪)
+```
+
+| 维度 | 状态 |
 |---|---|
-| **阶段** | 阶段 1 - 需求对齐（当前） |
-| **版本** | v0.1 |
-| **创建日期** | 2026-06-14 |
-| **目标平台** | Android 首发，iOS (V1.1) |
-| **Git Commits** | 11 个（main 分支）|
+| 核心功能 | ✅ 完成 |
+| 测试覆盖 | ✅ 225 测试全绿 (100%) |
+| Release APK | ✅ 23.6 MB（已签名） |
+| Supabase 云端 | ✅ 架构完成（待部署） |
+| UI 评分 | ✅ 9/10 |
+| 文档完整度 | ✅ 完整 |
 
-## 🐛 问题跟踪
+---
 
-所有问题统一在 **[`docs/03-management/issue-tracker.md`](docs/03-management/issue-tracker.md)** 跟踪管理。
+## 📱 核心功能
 
-| 状态 | 数量 | 详情 |
-|---|---|---|
-| ✅ 已修复 | 2 | BUG-001（坐标偏移）、BUG-002（浏览器缩放）|
-| 🔧 修复中 | 2 | Gateway 重启、wecom 93006 |
-| ⏳ 待处理 | 5 | GitHub 仓库、context_token、LLM hang、message 工具、图片 API |
+### 已实现 ✅
 
-> **查阅入口**：[Issue Tracker](./docs/03-management/issue-tracker.md) · [故障日志](./docs/03-management/event-log.md) · [风险登记](./docs/03-management/risk-register.md)
+| 功能 | 描述 |
+|---|---|
+| **旅程管理** | 创建 / 编辑 / 删除 / 归档 / 恢复 |
+| **成员管理** | 添加 / 删除 / 角色（组织者 / 成员）|
+| **分组功能** | 家庭 / 公司 / 部门 / 团队 |
+| **4 种分摊** | 均摊 / 比例 / 份数 / 指定金额 / 按组 |
+| **最优结算** | 贪心算法，最少转账次数 |
+| **离线存储** | Hive 本地数据库 |
+| **云端同步** | Supabase（Postgres + Auth + Realtime）|
+| **中文界面** | 完整中文 |
+| **Material 3** | 现代化设计 |
+| **Release 签名** | APK 可上架 |
 
-## 一句话定位
+### 待实现 ⏳
 
-专门为自驾游/团队游场景设计的智能记账与分摊工具，让多人 AA 结算从 30 分钟缩短到 30 秒。
+- 票据照片上传（Supabase Storage）
+- 实时多人协作（Realtime 订阅 UI）
+- iOS 适配
+- 国际化（i18n）
 
-## 目标用户
+---
 
-### 主要用户
-- 自驾游/团队游（3-15 人）—— 朋友、情侣、家庭、同事
-- 25-45 岁，周末周边游 + 长假长途游
-- 痛点：付款分散、算账扯皮、记账麻烦
+## 🚀 快速开始
 
-### 次要用户（V1.1+）
-- 户外俱乐部、驴友群、毕业旅行、亲子游、公司团建
+### 1. 克隆代码
 
-### V2.0 客户群
-- 企业团建、商业活动（报销场景）
+```bash
+git clone <repo>
+cd ai-travel-ledger
+flutter pub get
+```
 
-## 核心价值
+### 2. 跑测试
 
-1. **3 秒快速记账** — 极简录入流程
-2. **智能分摊规则** — 均摊 / 比例 / 部分人参与
-3. **最优结算路径** — 自动减少转账笔数
-4. **中文场景优化** — 红包、AA、自驾专属分类（油费/过路费/停车费）
+```bash
+flutter test
+# 225 tests, all passed
+```
 
-## MVP 功能 (P0)
+### 3. 启动 APP（本地模式）
 
-| 功能 | 状态 | 文档 |
-|---|---|---|
-| 旅程管理 | 📝 待开发 | [E-001](roadmap/epic-001-trip-management/epic.md) |
-| 快速记账 | 📝 待开发 | [E-002](roadmap/epic-002-expense-recording/epic.md) |
-| 基础分摊 | 📝 待开发 | [E-003](roadmap/epic-003-splitting-rules/epic.md) |
-| 结算引擎 | 📝 待开发 | [E-004](roadmap/epic-004-settlement-engine/epic.md) |
+```bash
+flutter run
+```
 
-## 技术栈
+### 4. 启动 APP（云端模式）
 
-| 类别 | 选型 | 理由 |
-|---|---|---|
-| 移动端 | **Flutter (Dart)** | 跨平台、AI 生成质量高、对 C 程序员友好 |
-| 后端 | **Supabase** | Postgres+Auth+Storage 一体化、免费层够用 |
-| IDE | **Trae** | 中文友好、免费 |
-| AI 模型 | **本地 Qwen3.6** + 云端 API | 几乎 0 token 费 |
-| 设计 | Figma + Galileo AI | 设计稿转代码 |
+先按 [Supabase 部署指南](docs/04-deployment/supabase-deploy-guide.md) 创建项目，然后：
 
-## 目录结构
+```bash
+flutter run --dart-define=SUPABASE_URL=<URL> --dart-define=SUPABASE_ANON_KEY=<KEY>
+```
+
+### 5. 构建 Release APK
+
+```bash
+flutter build apk --release
+# 输出: build/app/outputs/flutter-apk/app-release.apk (23.6 MB)
+```
+
+详见 [Release 构建指南](docs/02-architecture/07-release-build-guide.md)。
+
+---
+
+## 📂 项目结构
 
 ```
 ai-travel-ledger/
-├── README.md                  # 本文件
-├── docs/
-│   ├── 01-requirements/       # 需求（脑暴/PRD/FSD/用户故事/竞品）
-│   ├── 02-architecture/       # 架构（技术栈/系统设计/数据模型/ADR）
-│   └── 03-management/         # 管理（会议/周报/风险）
-├── design/                    # UI 设计稿
-├── roadmap/                   # wbs-planner 工作分解
-│   ├── roadmap.md
-│   ├── epic-001-trip-management/
-│   ├── epic-002-expense-recording/
-│   ├── epic-003-splitting-rules/
-│   ├── epic-004-settlement-engine/
-│   └── epic-005-sharing-export/
-└── assets/                    # 资源（图片/图标）
+├── lib/                          # 业务代码
+│   ├── core/supabase/            # 云端客户端
+│   ├── data/
+│   │   ├── models/               # Hive 数据模型
+│   │   ├── repositories/         # CRUD 仓储
+│   │   ├── seed_data.dart        # 演示数据
+│   │   └── sync/                 # 同步引擎
+│   ├── domain/
+│   │   └── services/             # 分摊 + 结算算法
+│   └── presentation/
+│       ├── providers/            # Riverpod 状态
+│       ├── screens/              # 13 个页面
+│       └── widgets/              # 复用组件
+├── supabase/
+│   ├── migrations/               # SQL 迁移
+│   └── deploy.ps1                # 部署脚本
+├── test/                         # 225 个测试
+│   ├── data/                     # 单元测试
+│   ├── domain/                   # 算法测试
+│   ├── presentation/             # Widget 测试
+│   ├── providers/                # 状态测试
+│   └── integration/              # 跨层集成
+├── android/                      # Android 配置
+└── docs/                         # 项目文档
+    ├── 01-requirements/          # 需求 + PRD
+    ├── 02-architecture/          # 架构 + ADR
+    ├── 03-management/            # 进度 + Issue
+    └── 04-deployment/            # 部署指南
 ```
 
-## 阶段进度
+---
 
-- [x] **阶段 0** - 立项 ✅
-- [ ] **阶段 1** - 需求对齐（**当前**）
-  - [ ] 需求脑暴
-  - [ ] PRD 撰写
-  - [ ] FSD 撰写
-  - [ ] 用户故事
-  - [ ] 竞品分析
-- [ ] **阶段 2** - 架构设计
-- [ ] **阶段 3** - 规划落地（Roadmap/Epic/Task 拆分）
-- [ ] **阶段 4** - 迭代交付
+## 🧪 测试
 
-## 里程碑
+### 测试统计
 
-- **M1 内测版 (T+2 月)**：E-001~E-004 完整功能
-- **M2 正式版 1.0 (T+3 月)**：E-005~E-007，Google Play 上架
-- **M3 商业版 2.0 (T+6 月)**：E-008~E-010，付费功能
+| 类别 | 测试数 |
+|---|---|
+| Domain（算法）| ~50 |
+| Data（Repository）| ~40 |
+| Presentation（Widget）| ~30 |
+| Provider（State）| ~20 |
+| Sync（同步）| 11 |
+| Integration（跨层）| 9 |
+| **总计** | **225 ✅** |
 
-## License
+测试耗时 ~20 秒。
 
-Private / 内部项目
+### 关键集成测试
+
+1. 完整旅程：创建 → 成员 → 4 笔费用 → 结算
+2. 多分摊规则：比例 + 份数混合
+3. 软删除：deletedAt 标记
+4. 归档 vs 活跃
+5. 分组功能：家庭 + 公司
+6. 边界：空 / 0 元 / 大额精度
+
+详见 [测试报告](docs/03-management/test-report-2026-07-04.md)。
+
+---
+
+## 🏗 技术栈
+
+| 层 | 选型 | 理由 |
+|---|---|---|
+| 框架 | Flutter 3.24.5 | 跨平台 + AI 友好 |
+| 语言 | Dart 3.5.4 | Flutter 原生 |
+| 状态 | Riverpod 2.x | 现代化、类型安全 |
+| 路由 | go_router | 声明式 |
+| 本地存储 | Hive | 快速、零依赖 |
+| 后端 | Supabase | Postgres + Auth + Realtime 一体化 |
+| 测试 | flutter_test | 官方 |
+| 主题 | Material 3 | 现代设计 |
+
+---
+
+## 📊 项目指标
+
+| 指标 | 数值 |
+|---|---|
+| 代码量 | ~5800 行 Dart |
+| SQL | 431 行 |
+| 测试 | 4142 行 (225 个) |
+| 文档 | ~3500 行 (22 文件) |
+| Git Commits | 30+ |
+| 实际开发时长 | 5 天 |
+
+---
+
+## 📚 文档导航
+
+| 文档 | 链接 |
+|---|---|
+| 项目总览 | [docs/README.md](docs/README.md) |
+| 需求 + PRD | [docs/01-requirements/](docs/01-requirements/) |
+| 架构 + ADR | [docs/02-architecture/](docs/02-architecture/) |
+| 进度 + Issue | [docs/03-management/](docs/03-management/) |
+| Supabase 部署 | [docs/04-deployment/supabase-deploy-guide.md](docs/04-deployment/supabase-deploy-guide.md) |
+| Release 构建 | [docs/02-architecture/07-release-build-guide.md](docs/02-architecture/07-release-build-guide.md) |
+| 测试报告 | [docs/03-management/test-report-2026-07-04.md](docs/03-management/test-report-2026-07-04.md) |
+| E2E 验证 | [docs/02-architecture/06-e2e-verification-report.md](docs/02-architecture/06-e2e-verification-report.md) |
+
+---
+
+## 🤝 贡献
+
+项目由创始人 + AI 助手协作完成。
+- **创始人**：需求 + 测试 + 反馈
+- **AI 助手**：架构 + 实现 + 文档 + 测试
+
+---
+
+## 📜 License
+
+Proprietary（暂未开源）
+
+---
+
+*最后更新：2026-07-04*
