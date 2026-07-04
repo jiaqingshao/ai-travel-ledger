@@ -93,6 +93,8 @@ class TripDetailScreen extends ConsumerWidget {
         children: [
           _TripInfoCard(trip: trip),
           const SizedBox(height: 16),
+          _FinancialSummary(tripId: tripId),
+          const SizedBox(height: 16),
           _SectionCard(
             title: '成员',
             icon: Icons.people_outline,
@@ -222,6 +224,196 @@ class TripDetailScreen extends ConsumerWidget {
     final v = hex.replaceFirst('#', '');
     if (v.length != 6) return null;
     return Color(int.parse('FF$v', radix: 16));
+  }
+}
+
+/// 财务概览卡片 - 绿色渐变,总费用/笔数/人均
+class _FinancialSummary extends ConsumerWidget {
+  const _FinancialSummary({required this.tripId});
+  final String tripId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final expensesAsync = ref.watch(expensesByTripProvider(tripId));
+    final membersAsync = ref.watch(membersByTripProvider(tripId));
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF10B981), Color(0xFF34D399)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.account_balance_wallet,
+                    color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '费用概览',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          expensesAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              ),
+            ),
+            error: (e, _) => Text('加载失败：$e',
+                style: const TextStyle(color: Colors.white)),
+            data: (expenses) {
+              final total = expenses.fold<double>(0, (sum, e) => sum + e.amount);
+              final memberCount = membersAsync.maybeWhen(
+                data: (m) => m.length,
+                orElse: () => 0,
+              );
+              final perPerson = memberCount > 0 ? total / memberCount : 0.0;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _FinanceStat(
+                    label: '总费用',
+                    value: '¥${total.toStringAsFixed(2)}',
+                    large: true,
+                  ),
+                  _FinanceDivider(),
+                  _FinanceStat(
+                    label: '笔数',
+                    value: '${expenses.length}',
+                    large: true,
+                  ),
+                  _FinanceDivider(),
+                  _FinanceStat(
+                    label: '人均',
+                    value: '¥${perPerson.toStringAsFixed(2)}',
+                    large: true,
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          // 快速入口
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ExpenseListScreen(tripId: tripId),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF10B981),
+                  ),
+                  icon: const Icon(Icons.list_alt, size: 18),
+                  label: const Text('所有费用'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SettlementScreen(tripId: tripId),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF10B981),
+                  ),
+                  icon: const Icon(Icons.balance, size: 18),
+                  label: const Text('查看结算'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FinanceStat extends StatelessWidget {
+  const _FinanceStat({
+    required this.label,
+    required this.value,
+    this.large = false,
+  });
+
+  final String label;
+  final String value;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: large ? 16 : 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.85),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FinanceDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      width: 1,
+      color: Colors.white.withOpacity(0.3),
+    );
   }
 }
 
