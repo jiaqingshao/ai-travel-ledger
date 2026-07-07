@@ -69,6 +69,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (err == null) {
       // 成功 → 关闭
       Navigator.of(context).pop(true);
+      return;
+    }
+
+    // ISSUE-021: 增强错误提示 - 邮箱未验证提示
+    if (!_isLogin && err.toLowerCase().contains('email not confirmed')) {
+      setState(() {
+        _error = '✉️ 注册成功！
+
+'
+            '请到邮箱中点击验证链接，
+'
+            '然后返回本页登录。
+
+'
+            '原错误：' + err;
+      });
+      return;
     }
   }
 

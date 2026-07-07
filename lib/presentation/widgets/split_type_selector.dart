@@ -448,28 +448,36 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
               controller: ctrl,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.next,
+              scrollPadding: const EdgeInsets.only(bottom: 200),
               decoration: const InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(),
-                prefixText: '¥ ',
+                prefixText: '￥ ',
                 hintText: '0.00',
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                ),
+                style: const TextStyle(fontSize: 13),
+                onChanged: (v) {
+                  final parsed = double.tryParse(v) ?? 0;
+                  setState(() {
+                    _specific[m.id] = parsed;
+                  });
+                  _emit();
+                },
+                onSubmitted: (_) {
+                  // 焦点跳到下一个成员输入框 (ISSUE-022 修复)
+                  FocusScope.of(context).nextFocus();
+                },
               ),
-              style: const TextStyle(fontSize: 13),
-              onChanged: (v) {
-                final parsed = double.tryParse(v) ?? 0;
-                setState(() {
-                  _specific[m.id] = parsed;
-                });
-                _emit();
-              },
             ),
-          ),
         ],
       ),
     );
   }
+
+  // ============================ 按组 ============================
 
   Widget _specificSumWarning() {
     final sum = _specific.values.fold<double>(0, (a, b) => a + b);
@@ -506,8 +514,6 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
       ),
     );
   }
-
-  // ============================ 按组 ============================
 
   Widget _byGroupPanel() {
     final groupsAsync = ref.watch(groupsByTripProvider(widget.tripId));
@@ -808,6 +814,18 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
       rule: _buildSplitRule(),
       result: _compute(),
     );
+  }
+
+  /// 重置为默认状态 (ISSUE-023 修复: 保存并继续时复用)
+  void reset() {
+    setState(() {
+      _type = SplitType.equal;
+      _ratios.clear();
+      _shares.clear();
+      _specific.clear();
+      _selectedGroupIds.clear();
+      _groupRatios.clear();
+    });
   }
 
   /// 构造 SplitRule（供父组件提交 + 测试用）

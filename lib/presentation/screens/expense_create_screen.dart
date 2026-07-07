@@ -96,6 +96,7 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
                 onPrev: _step > 0 ? _prev : null,
                 onNext: _step < 2 ? _next : null,
                 onSubmit: _submit,
+                onSubmitAndContinue: _step == 2 ? _submitAndContinue : null,
               ),
             ],
           );
@@ -201,8 +202,31 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
     setState(() => _amountInput = '');
   }
 
-  Future<void> _submit() async {
-    if (!_canSubmit) return;
+  /// ISSUE-023: 保存并继续 - 保存当前 expense 但不关闭页面
+  /// 用于连续记录多笔相似费用 (如部门聚餐每人点菜)
+  Future<void> _submitAndContinue() async {
+    final ok = await _submit();
+    if (!ok || !mounted) return;
+    // 重置表单状态 (保留 _payer 和 _category)
+    setState(() {
+      _amountInput = '';
+      _descCtrl.clear();
+      // 重置 split selector
+      final selectorState = _splitSelectorKey.currentState;
+      if (selectorState != null) {
+        selectorState.reset();
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ 已保存，可继续记录下一笔'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<bool> _submit() async {
+    if (!_canSubmit) return false;
     setState(() => _submitting = true);
     try {
       // 优先使用 SplitTypeSelector（W3）导出的规则
@@ -230,12 +254,12 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
                 : _descCtrl.text.trim(),
           );
 
-      if (!mounted) return;
+      if (!mounted) return false;
       if (result.duplicate != null) {
         final ok = await _confirmDuplicate(result.duplicate!);
         if (ok != true) {
           setState(() => _submitting = false);
-          return;
+          return false;
         }
       }
       if (mounted) {
@@ -250,9 +274,11 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
           SnackBar(content: Text('记账失败：$e')),
         );
       }
+      return false;
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+    return true;  // 成功路径
   }
 
   Future<bool?> _confirmDuplicate(Expense existing) {
@@ -661,6 +687,7 @@ class _BottomBar extends StatelessWidget {
     required this.onPrev,
     required this.onNext,
     required this.onSubmit,
+    this.onSubmitAndContinue,
   });
 
   final bool canNext;
@@ -670,6 +697,8 @@ class _BottomBar extends StatelessWidget {
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
   final VoidCallback onSubmit;
+  // ISSUE-023: 保存并继续按钮 (null 表示不显示)
+  final VoidCallback? onSubmitAndContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -695,10 +724,24 @@ class _BottomBar extends StatelessWidget {
                   child: const Text('上一步'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+            ],
+            if (isLast && onSubmitAndContinue != null) ...[
+              // ISSUE-023: 保存并继续按钮 (主操作)
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: !canSubmit || submitting ? null : onSubmitAndContinue,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                  ),
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: const Text('保存并继续'),
+                ),
+              ),
+              const SizedBox(width: 8),
             ],
             Expanded(
-              flex: onPrev == null ? 1 : 1,
               child: FilledButton(
                 onPressed: !canNext && !canSubmit
                     ? null
@@ -715,7 +758,7 @@ class _BottomBar extends StatelessWidget {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : Text(isLast ? '保存' : '下一步'),
+                    : Text(isLast ? '保存完成' : '下一步'),
               ),
             ),
           ],

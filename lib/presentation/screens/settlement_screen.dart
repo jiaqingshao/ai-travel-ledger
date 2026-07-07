@@ -47,14 +47,20 @@ class SettlementScreen extends ConsumerWidget {
           if (settlement.memberCount == 0) {
             return const _EmptyView();
           }
-          if (settlement.isBalanced) {
-            return _BalancedView(settlement: settlement);
-          }
+          // ISSUE-020: 即使 isBalanced 也显示完整余额和转账信息
           return membersAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('加载成员失败：$e')),
-            data: (members) =>
-                _SettlementView(settlement: settlement, members: members),
+            data: (members) {
+              // 人数为空时显示空状态
+              if (members.isEmpty) {
+                return _EmptyView(settlement: settlement);
+              }
+              return _SettlementView(
+                settlement: settlement,
+                members: members,
+              );
+            },
           );
         },
       ),
@@ -461,29 +467,40 @@ class _BalancedView extends StatelessWidget {
   }
 }
 
-/// 空状态（无成员）
+/// 空状态（无成员 或 无人数据）
 class _EmptyView extends StatelessWidget {
-  const _EmptyView();
+  const _EmptyView({this.settlement});
+  final TripSettlement? settlement;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final df = NumberFormat('#,##0.00');
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.people_outline, size: 96, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               '尚未添加成员',
               style: TextStyle(fontSize: 18),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              '请先在旅程中添加成员',
-              style: TextStyle(color: Colors.grey),
+              '请先在旅程中添加成员、记录费用',
+              style: const TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
+            // ISSUE-020: 如果有总额但无成员，显示提示
+            if (settlement != null && settlement.totalAmount > 0) ...[
+              const SizedBox(height: 16),
+              Text(
+                '总费用：¥ ${df.format(settlement!.totalAmount)}',
+                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
+              ),
+            ],
           ],
         ),
       ),
