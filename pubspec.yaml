@@ -79,6 +79,13 @@ dev_dependencies:
   hive_generator: ^2.0.1
   build_runner: ^2.4.8
 
+# 依赖覆盖 - 修复 app_links 6.4.1 与 Flutter 3.x 不兼容
+# 6.4.1 的 build.gradle 引用了 'flutter' 属性，但当前 Flutter 3.x 移除了这个属性
+# 升级到 6.3.x（兼容 Dart 3.3.0+，Flutter 3.19+，对应 3.24.5 完美适配）
+# 7.x 系列需要 Dart 3.12+，等升级 Flutter 后再用（ISSUE-2026-07-09-01）
+dependency_overrides:
+  app_links: 6.3.1
+
 flutter:
   uses-material-design: true
   assets:

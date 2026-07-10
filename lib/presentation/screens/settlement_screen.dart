@@ -474,6 +474,7 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = settlement;
     final df = NumberFormat('#,##0.00');
     return Center(
       child: Padding(
@@ -494,10 +495,10 @@ class _EmptyView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             // ISSUE-020: 如果有总额但无成员，显示提示
-            if (settlement != null && settlement.totalAmount > 0) ...[
+            if (s != null && s.totalAmount > 0) ...[
               const SizedBox(height: 16),
               Text(
-                '总费用：¥ ${df.format(settlement!.totalAmount)}',
+                '总费用：¥ ${df.format(s.totalAmount)}',
                 style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
               ),
             ],

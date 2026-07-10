@@ -457,21 +457,21 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
                 hintText: '0.00',
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                ),
-                style: const TextStyle(fontSize: 13),
-                onChanged: (v) {
-                  final parsed = double.tryParse(v) ?? 0;
-                  setState(() {
-                    _specific[m.id] = parsed;
-                  });
-                  _emit();
-                },
-                onSubmitted: (_) {
-                  // 焦点跳到下一个成员输入框 (ISSUE-022 修复)
-                  FocusScope.of(context).nextFocus();
-                },
               ),
+              style: const TextStyle(fontSize: 13),
+              onChanged: (v) {
+                final parsed = double.tryParse(v) ?? 0;
+                setState(() {
+                  _specific[m.id] = parsed;
+                });
+                _emit();
+              },
+              onSubmitted: (_) {
+                // 焦点跳到下一个成员输入框 (ISSUE-022 修复)
+                FocusScope.of(context).nextFocus();
+              },
             ),
+          ),
         ],
       ),
     );
