@@ -303,6 +303,31 @@ void main() {
       expect(syncCalls, 1);
     });
 
+    // ISSUE-024: 更新 payerId + occurredAt 字段
+    test('更新付款人 + 时间 (ISSUE-024)', () async {
+      final e = await repo.create(
+        tripId: 't1',
+        payerId: 'm1',
+        amount: 50.0,
+        category: ExpenseCategory.food,
+        splitRuleJson: '',
+      );
+      syncCalls = 0;
+      final newTime = DateTime(2026, 6, 15, 18, 30);
+      final updated = await repo.update(
+        e.id,
+        payerId: 'm2',
+        occurredAt: newTime,
+      );
+      expect(updated.payerId, 'm2');
+      expect(updated.occurredAt, newTime);
+      // 其它字段保持不变
+      expect(updated.amount, 50.0);
+      expect(updated.category, ExpenseCategory.food);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(syncCalls, 1);
+    });
+
     test('更新不存在的 id 抛 StateError', () async {
       expect(
         () => repo.update('missing', amount: 1.0),
