@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/models/expense.dart';
+import '../../data/models/member.dart';
 import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
 
@@ -30,6 +31,9 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   late TextEditingController _amountCtrl;
   late TextEditingController _descCtrl;
   late ExpenseCategory _category;
+  // ISSUE-024: 编辑付款人 + 时间
+  String? _editingPayerId;
+  late DateTime _editingOccurredAt;
 
   @override
   void initState() {
@@ -37,6 +41,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     _amountCtrl = TextEditingController();
     _descCtrl = TextEditingController();
     _category = ExpenseCategory.food;
+    _editingPayerId = null;
+    _editingOccurredAt = DateTime.now();
   }
 
   @override
@@ -50,6 +56,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     _amountCtrl.text = e.amount.toStringAsFixed(2);
     _descCtrl.text = e.description ?? '';
     _category = e.category;
+    _editingPayerId = e.payerId;
+    _editingOccurredAt = e.occurredAt;
   }
 
   @override
@@ -201,6 +209,10 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   }
 
   Widget _buildEdit(Expense e) {
+    final membersAsync = ref.watch(membersByTripProvider(widget.tripId));
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+    final currentDateLabel = dateFormat.format(_editingOccurredAt);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -211,6 +223,35 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
             labelText: '金额 *',
             prefixText: '¥ ',
             border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // ISSUE-024: 付款人选择
+        membersAsync.when(
+          loading: () => const LinearProgressIndicator(),
+          error: (err, _) => Text('加载成员失败: $err'),
+          data: (members) {
+            final payerName = _findPayerName(members, _editingPayerId);
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('付款人'),
+                subtitle: Text(payerName ?? '未选择'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showPayerPicker(members),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        // ISSUE-024: 时间选择
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.access_time),
+            title: const Text('时间'),
+            subtitle: Text(currentDateLabel),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _showDateTimePicker,
           ),
         ),
         const SizedBox(height: 16),
@@ -248,21 +289,102 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     );
   }
 
+  // ISSUE-024: 付款人选择弹窗
+  Future<void> _showPayerPicker(List<Member> members) async {
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('选择付款人'),
+        children: members
+            .map((m) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(ctx, m.id),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        child: Text(
+                          m.nickname.isNotEmpty
+                              ? m.nickname[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(m.nickname),
+                      if (m.id == _editingPayerId) ...[
+                        const Spacer(),
+                        Icon(
+                          Icons.check,
+                          color: Theme.of(ctx).colorScheme.primary,
+                        ),
+                      ],
+                    ],
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+    if (selected != null) {
+      setState(() => _editingPayerId = selected);
+    }
+  }
+
+  // ISSUE-024: 日期 + 时间选择
+  Future<void> _showDateTimePicker() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _editingOccurredAt,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      // ignore: use_build_context_synchronously
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_editingOccurredAt),
+    );
+    if (pickedTime == null || !mounted) return;
+    setState(() {
+      _editingOccurredAt = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
+  }
+
+  String? _findPayerName(List<Member> members, String? payerId) {
+    if (payerId == null) return null;
+    for (final m in members) {
+      if (m.id == payerId) return m.nickname;
+    }
+    return null;
+  }
+
   Future<void> _save(Expense e) async {
     final amount = double.tryParse(_amountCtrl.text);
     if (amount == null || amount <= 0) {
       _snack('请输入有效金额');
       return;
     }
+    if (_editingPayerId == null) {
+      _snack('请选择付款人');
+      return;
+    }
     setState(() => _saving = true);
     try {
+      // ISSUE-024: 包含 payerId + occurredAt 变更
       await ref.read(expenseNotifierProvider.notifier).update(
             e.id,
+            payerId: _editingPayerId,
             amount: amount,
             category: _category,
             description: _descCtrl.text.trim().isEmpty
                 ? null
                 : _descCtrl.text.trim(),
+            occurredAt: _editingOccurredAt,
           );
       if (mounted) {
         _snack('已保存');
