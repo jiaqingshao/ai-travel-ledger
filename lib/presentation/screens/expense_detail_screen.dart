@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +8,8 @@ import '../../data/models/expense.dart';
 import '../../data/models/member.dart';
 import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
+import '../widgets/split_type_selector.dart' show SplitRuleExport;
+import 'split_rule_edit_page.dart';
 
 /// 费用详情 - 查看 / 编辑 / 删除
 class ExpenseDetailScreen extends ConsumerStatefulWidget {
@@ -34,6 +38,9 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   // ISSUE-024: 编辑付款人 + 时间
   String? _editingPayerId;
   late DateTime _editingOccurredAt;
+  // V1.1: 编辑分摊规则 + 附件
+  String? _editingSplitRuleJson;
+  late List<String> _editingAttachments;
 
   @override
   void initState() {
@@ -43,6 +50,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     _category = ExpenseCategory.food;
     _editingPayerId = null;
     _editingOccurredAt = DateTime.now();
+    _editingSplitRuleJson = null;
+    _editingAttachments = [];
   }
 
   @override
@@ -58,6 +67,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     _category = e.category;
     _editingPayerId = e.payerId;
     _editingOccurredAt = e.occurredAt;
+    _editingSplitRuleJson = e.splitRuleJson;
+    _editingAttachments = List<String>.from(e.attachments);
   }
 
   @override
@@ -285,8 +296,151 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
             border: OutlineInputBorder(),
           ),
         ),
+        const SizedBox(height: 16),
+        // V1.1: 分摊规则编辑
+        _buildSplitRuleTile(membersAsync.value ?? const []),
+        const SizedBox(height: 16),
+        // V1.1: 附件编辑
+        _buildAttachmentsSection(),
       ],
     );
+  }
+
+  // V1.1: 分摊规则编辑入口
+  Widget _buildSplitRuleTile(List<Member> members) {
+    final hasRule = _editingSplitRuleJson != null &&
+        _editingSplitRuleJson!.isNotEmpty;
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.pie_chart_outline),
+        title: const Text('分摊规则'),
+        subtitle: Text(
+          hasRule ? '已设置 (点击修改)' : '默认均摊 (点击设置)',
+          style: TextStyle(
+            color: hasRule
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey,
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: members.isEmpty
+            ? null
+            : () => _openSplitRuleEditor(members),
+      ),
+    );
+  }
+
+  Future<void> _openSplitRuleEditor(List<Member> members) async {
+    final amount = double.tryParse(_amountCtrl.text) ?? 0.0;
+    if (amount <= 0) {
+      _snack('请先输入有效金额');
+      return;
+    }
+    final result = await Navigator.push<SplitRuleExport>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SplitRuleEditPage(
+          total: amount,
+          members: members,
+          tripId: widget.tripId,
+          initialSplitRuleJson: _editingSplitRuleJson,
+        ),
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        _editingSplitRuleJson = jsonEncode(result.rule.toJson());
+      });
+    }
+  }
+
+  // V1.1: 附件管理
+  Widget _buildAttachmentsSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.attach_file),
+                const SizedBox(width: 8),
+                const Text(
+                  '附件',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _addAttachment,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('添加'),
+                ),
+              ],
+            ),
+            if (_editingAttachments.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  '无附件 (点击右上"添加"输入 URL)',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              )
+            else
+              ..._editingAttachments.asMap().entries.map(
+                    (entry) => ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.link, size: 18),
+                      title: Text(
+                        entry.value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () =>
+                            setState(() => _editingAttachments.removeAt(entry.key)),
+                      ),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addAttachment() async {
+    final ctrl = TextEditingController();
+    final url = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('添加附件'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: '附件 URL',
+            hintText: 'https://...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('添加'),
+          ),
+        ],
+      ),
+    );
+    if (url != null && url.isNotEmpty) {
+      setState(() => _editingAttachments.add(url));
+    }
   }
 
   // ISSUE-024: 付款人选择弹窗
@@ -375,7 +529,7 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     }
     setState(() => _saving = true);
     try {
-      // ISSUE-024: 包含 payerId + occurredAt 变更
+      // ISSUE-024 + V1.1: 包含 payerId + occurredAt + splitRuleJson + attachments
       await ref.read(expenseNotifierProvider.notifier).update(
             e.id,
             payerId: _editingPayerId,
@@ -385,6 +539,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
                 ? null
                 : _descCtrl.text.trim(),
             occurredAt: _editingOccurredAt,
+            splitRuleJson: _editingSplitRuleJson,
+            attachments: _editingAttachments,
           );
       if (mounted) {
         _snack('已保存');
