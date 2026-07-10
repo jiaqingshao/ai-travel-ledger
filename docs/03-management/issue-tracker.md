@@ -450,3 +450,54 @@ one (绕过企业微信 93006)
 ---
 
 *追加时间: 2026-07-10 16:00 | 工具: PM 主 Agent | 文件: docs/03-management/issue-tracker.md*
+
+
+---
+
+## ✅ ISSUE-024 完成总结 (V1.1 / v0.2.0)
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-024-COMPLETE |
+| **状态** | ✅ 已完整修复 (v0.2.0+2) |
+| **修复时间** | 2026-07-10 16:30 |
+| **Commit** | `dae34ca feat(v0.2.0 / V1.1): ISSUE-024 完整版 - 分摊规则 + 附件编辑` |
+
+**完整修复内容**:
+- ✅ **付款人编辑** (e964817 - 7-10 16:18)
+  - ListTile 弹窗选择
+  - _save() 传 payerId
+- ✅ **时间编辑** (e964817 - 7-10 16:18)
+  - DatePicker + TimePicker
+  - _save() 传 occurredAt
+- ✅ **分摊规则编辑** (dae34ca - 7-10 16:30)
+  - 新增 SplitRuleEditPage 全屏编辑器
+  - 复用 SplitTypeSelector (5 种分摊模式)
+  - 从 splitRuleJson 解析初始值
+  - _save() 传 splitRuleJson
+- ✅ **附件编辑** (dae34ca - 7-10 16:30)
+  - 显示已有附件 + 添加 URL + 删除
+  - _save() 传 attachments
+
+**v0.2.0+2 APK**:
+- 路径：`build/app/outputs/flutter-apk/app-release.apk`
+- 大小：24.9 MB
+- SHA1：`065077dea87f5b63ae78fedeb66ce252a2d7fef5`
+- 包含：保存并继续 + 全部 4 个编辑字段
+
+**测试**:
+- 228/228 全过 (从 225 增到 228)
+- 新增 3 个测试:
+  1. `更新付款人 + 时间 (ISSUE-024)`
+  2. `更新分摊规则 + 附件 (V1.1)`
+  3. `完整更新所有字段 (V1.1)` (7 字段同改)
+- flutter analyze: No issues found
+
+**用户安装注意**:
+- 新版用**新生成的 keystore 签名**, 与 0.1.0 APK 签名不同
+- 装前必须**先卸载旧版**, 卸载会清空本地 Hive 数据
+- 建议先配置 Supabase 云同步, 防止数据丢失
+
+---
+
+*完成时间: 2026-07-10 16:30 | 工具: PM 主 Agent (minimax/MiniMax-M3)*
