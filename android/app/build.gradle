@@ -15,7 +15,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.aitravel.ledger.ai_travel_ledger"
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    // 2026-07-10: 锁定 NDK 25.1.8937393 (与 app_links / image_picker / shared_preferences 等插件兼容)
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
