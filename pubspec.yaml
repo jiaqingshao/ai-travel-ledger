@@ -1,6 +1,6 @@
 name: ai_travel_ledger
 description: "AI 旅行账本 - 自驾游/团队游场景的智能记账与分摊工具。让多人 AA 结算从 30 分钟缩短到 30 秒。"
-version: 0.1.0+1
+version: 0.2.0+2
 publish_to: 'none'
 
 environment:

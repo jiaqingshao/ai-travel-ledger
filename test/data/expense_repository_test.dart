@@ -328,6 +328,62 @@ void main() {
       expect(syncCalls, 1);
     });
 
+    // V1.1: 更新 splitRuleJson + attachments
+    test('更新分摊规则 + 附件 (V1.1)', () async {
+      final e = await repo.create(
+        tripId: 't1',
+        payerId: 'm1',
+        amount: 100.0,
+        category: ExpenseCategory.food,
+        splitRuleJson: '',
+      );
+      syncCalls = 0;
+      final newRule = '{"type":"ratio","participants":[{"type":"member","id":"m1"},{"type":"member","id":"m2"}],"values":{"m1":0.6,"m2":0.4}}';
+      final newAttachments = ['https://example.com/r1.jpg', 'https://example.com/r2.jpg'];
+      final updated = await repo.update(
+        e.id,
+        splitRuleJson: newRule,
+        attachments: newAttachments,
+      );
+      expect(updated.splitRuleJson, newRule);
+      expect(updated.attachments, newAttachments);
+      // 其它字段保持不变
+      expect(updated.amount, 100.0);
+      expect(updated.category, ExpenseCategory.food);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(syncCalls, 1);
+    });
+
+    // V1.1: 完整更新 - 所有字段 (payer + amount + category + desc + time + rule + attachments)
+    test('完整更新所有字段 (V1.1)', () async {
+      final e = await repo.create(
+        tripId: 't1',
+        payerId: 'm1',
+        amount: 50.0,
+        category: ExpenseCategory.food,
+        splitRuleJson: '',
+      );
+      final newTime = DateTime(2026, 6, 20, 9, 0);
+      final newRule = '{"type":"equal","participants":[{"type":"member","id":"m1"}],"values":{}}';
+      final updated = await repo.update(
+        e.id,
+        payerId: 'm3',
+        amount: 200.0,
+        category: ExpenseCategory.lodging,
+        description: '酒店',
+        occurredAt: newTime,
+        splitRuleJson: newRule,
+        attachments: ['https://example.com/receipt.jpg'],
+      );
+      expect(updated.payerId, 'm3');
+      expect(updated.amount, 200.0);
+      expect(updated.category, ExpenseCategory.lodging);
+      expect(updated.description, '酒店');
+      expect(updated.occurredAt, newTime);
+      expect(updated.splitRuleJson, newRule);
+      expect(updated.attachments.length, 1);
+    });
+
     test('更新不存在的 id 抛 StateError', () async {
       expect(
         () => repo.update('missing', amount: 1.0),
