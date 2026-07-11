@@ -19,8 +19,12 @@
 $ErrorActionPreference = 'Stop'
 
 # 优先从环境变量读，没有再硬编码（用户填）
-$env:SUPABASE_URL = $env:SUPABASE_URL ?? 'https://zvqnawllsdmisntkxdwp.supabase.co'
-$env:SUPABASE_ANON_KEY = $env:SUPABASE_ANON_KEY ?? '<REPLACE_WITH_YOUR_ANON_KEY>'
+if ([string]::IsNullOrEmpty($env:SUPABASE_URL)) {
+    $env:SUPABASE_URL = 'https://zvqnawllsdmisntkxdwp.supabase.co'
+}
+if ([string]::IsNullOrEmpty($env:SUPABASE_ANON_KEY)) {
+    $env:SUPABASE_ANON_KEY = '<REPLACE_WITH_YOUR_ANON_KEY>'
+}
 
 # 检查 anon key 是否还是占位符
 if ($env:SUPABASE_ANON_KEY -eq '<REPLACE_WITH_YOUR_ANON_KEY>') {
