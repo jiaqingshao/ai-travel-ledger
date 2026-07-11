@@ -22,10 +22,18 @@ class SupabaseConfig {
     defaultValue: 'your-anon-key-here',
   );
 
-  /// 是否已配置（值不是默认占位符）
+  /// 是否已配置（值不是默认占位符且非空且 URL 合法）
+  ///
+  /// 防护场景:
+  /// - 构建时传入空字符串 (--dart-define=SUPABASE_URL=)
+  /// - URL 不以 http 开头（误填）
+  /// - 占位符未替换
   static bool get isConfigured =>
+      url.isNotEmpty &&
+      anonKey.isNotEmpty &&
       url != 'https://your-project.supabase.co' &&
-      anonKey != 'your-anon-key-here';
+      anonKey != 'your-anon-key-here' &&
+      (url.startsWith('http://') || url.startsWith('https://'));
 
   /// Storage bucket 名（票据照片）
   static const String receiptBucket = 'receipts';
