@@ -91,6 +91,30 @@ class _SummaryCard extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 12),
+            if (settlement.totalAmount == 0) ...[
+              // ISSUE-029 修复：暂无费用时显示提示
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline,
+                        size: 20, color: Theme.of(context).colorScheme.tertiary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '本旅程还未记录任何费用,先添加一笔吧',
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onTertiaryContainer),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(
               children: [
                 Expanded(child: _Stat('总支出', '¥ ${df.format(settlement.totalAmount)}')),
@@ -178,6 +202,33 @@ class _BalancesCard extends StatelessWidget {
     final df = NumberFormat('#,##0.00');
     final sortedEntries = balances.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+
+    // ISSUE-029 修复：balances 为空时显示友好提示
+    if (sortedEntries.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long_outlined,
+                  size: 48, color: Theme.of(context).colorScheme.outline),
+              const SizedBox(height: 12),
+              const Text(
+                '暂无费用记录',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                '添加费用后,这里会显示每人净收支',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Card(
       child: Padding(

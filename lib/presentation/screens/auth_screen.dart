@@ -85,7 +85,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Supabase 未配置 - 显示提示
+    // Supabase 未配置 - 显示友好提示
+    // ISSUE-029 修复：去掉 CLI 命令，改用面向普通用户的文案
     if (!SupabaseService.instance.isInitialized) {
       return Scaffold(
         appBar: AppBar(title: const Text('云端同步')),
@@ -95,26 +96,34 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.cloud_off, size: 64,
+                Icon(Icons.cloud_off, size: 72,
                     color: theme.colorScheme.outline),
                 const SizedBox(height: 16),
-                const Text(
-                  '云端同步未启用',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
                 Text(
-                  'APP 当前以纯本地模式运行。\n如需多人同步,请配置 Supabase：\n\n'
-                  'flutter run \\\n'
-                  '  --dart-define=SUPABASE_URL=https://xxx.supabase.co \\\n'
-                  '  --dart-define=SUPABASE_ANON_KEY=eyJ...',
+                  '云端同步未配置',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '当前为本地模式，数据保存在设备本地。\n'
+                  '如需开启云同步（多设备备份），请联系开发者：\n'
+                  'litiboy@163.com',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.colorScheme.outline),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
                 const SizedBox(height: 24),
+                const Text(
+                  '您可以继续本地使用本软件',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('继续本地使用'),
+                  child: const Text('知道了，返回'),
                 ),
               ],
             ),
