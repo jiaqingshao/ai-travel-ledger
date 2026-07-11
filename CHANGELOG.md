@@ -5,10 +5,26 @@
 ## [Unreleased]
 
 ### Planned
-- 票据照片上传（Supabase Storage）
+- 票据照片上传（Supabase Storage） — **ISSUE-026 / V1.2**
 - iOS 适配
 - 实时多人协作 UI
-- Google Play 上架
+- Google Play 上架 — **ISSUE-025**
+
+---
+
+## [1.1.0] - 2026-07-10 (V1.1 编辑能力)
+
+### ✨ Features (代码已实现, 待 Supabase 包发布)
+
+- **SplitRuleEditPage**: 分摊规则全屏编辑器 (已合并)
+- **附件编辑**: 费用详情可修改付款人/时间/分摊规则/附件 (ISSUE-024 修复)
+- **"保存并继续"按钮**: 费用输入流优化
+
+### 🔧 Build
+
+- NDK 版本锁定 (避免新 PC 编译漂移)
+- `.gitignore release` 屏蔽大产物
+- Supabase 工具脚本: `run-with-supabase.ps1` / `build-with-supabase.ps1` / `check_supabase_schema.py`
 
 ---
 
