@@ -9,6 +9,7 @@ import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
 import '../providers/sync_providers.dart';
 import '../providers/trip_provider.dart';
+import 'about_screen.dart';
 import 'ai_settings_screen.dart';
 import 'archived_trips_screen.dart';
 import 'auth_screen.dart';
@@ -77,6 +78,14 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
                           ),
                         );
                         break;
+                      case 'about':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AboutScreen(),
+                          ),
+                        );
+                        break;
                     }
                   },
                   itemBuilder: (_) => const [
@@ -107,6 +116,16 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
                           Icon(Icons.psychology_outlined, size: 18),
                           SizedBox(width: 8),
                           Text('AI 设置'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'about',
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 18),
+                          SizedBox(width: 8),
+                          Text('关于'),
                         ],
                       ),
                     ),
