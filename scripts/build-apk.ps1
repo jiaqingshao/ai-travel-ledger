@@ -238,12 +238,33 @@ if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Add-Type -A System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory($releaseDir, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
 
+# ===== [6/6] 自动复制到 NAS 真机获取目录 =====
+# 需求 (2026-07-11): 今后生成的 APK 自动拷贝一份到 NAS, 便于真机直接获取
+# NAS 路径可被局域网真机直接访问, 无需中转
+Write-Host "[6/6] 复制到 NAS 真机目录..." -ForegroundColor Yellow
+$nasDir = "\\192.168.1.170\学习\开发"
+if (Test-Path $nasDir) {
+    try {
+        Copy-Item $apkDst $nasDir -Force
+        Copy-Item "$apkDst.sha1" $nasDir -Force -ErrorAction SilentlyContinue
+        $nasApk = Join-Path $nasDir (Split-Path $apkDst -Leaf)
+        Write-Host "✅ 已复制到 $nasApk" -ForegroundColor Green
+    } catch {
+        Write-Host "⚠️  NAS 复制失败: $_" -ForegroundColor Yellow
+        Write-Host "   可手动复制: $apkDst -> $nasDir" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "⚠️  NAS 路径不可达: $nasDir" -ForegroundColor Yellow
+    Write-Host "   可手动复制: $apkDst -> $nasDir" -ForegroundColor Yellow
+}
 Write-Host ""
+
 Write-Host "=========================================" -ForegroundColor Green
 Write-Host "  ✅ v$versionName-$modeTag Release 完成!" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "APK:       $apkDst" -ForegroundColor Cyan
+Write-Host "NAS APK:   $(Join-Path $nasDir (Split-Path $apkDst -Leaf))" -ForegroundColor Cyan
 Write-Host "ZIP:       $zipPath" -ForegroundColor Cyan
 Write-Host "SHA1:      $sha1" -ForegroundColor Cyan
 Write-Host ""
