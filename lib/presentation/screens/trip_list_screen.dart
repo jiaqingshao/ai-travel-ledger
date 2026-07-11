@@ -13,6 +13,7 @@ import 'about_screen.dart';
 import 'ai_settings_screen.dart';
 import 'archived_trips_screen.dart';
 import 'auth_screen.dart';
+import 'supabase_settings_screen.dart';
 import 'trip_create_screen.dart';
 import 'trip_detail_screen.dart';
 
@@ -48,7 +49,7 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
               ),
               actions: [
                 IconButton(
-                  tooltip: auth.isSignedIn ? '已登录' : '云端同步',
+                  tooltip: auth.isSignedIn ? '已登录' : '云端同步/设置',
                   icon: Icon(
                     auth.isSignedIn ? Icons.cloud_done : Icons.cloud_sync_outlined,
                     color: auth.isSignedIn ? Colors.green : null,
@@ -83,6 +84,14 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const AboutScreen(),
+                          ),
+                        );
+                        break;
+                      case 'cloud':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SupabaseSettingsScreen(),
                           ),
                         );
                         break;
@@ -126,6 +135,16 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
                           Icon(Icons.info_outline, size: 18),
                           SizedBox(width: 8),
                           Text('关于'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'cloud',
+                      child: Row(
+                        children: [
+                          Icon(Icons.cloud_sync_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('云端设置'),
                         ],
                       ),
                     ),
@@ -180,6 +199,17 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
   }
 
   void _openAuth() async {
+    // 检查是否已配置 Supabase
+    final settings = ref.read(appSettingsRepositoryProvider).load();
+    if (!settings.isCloudMode) {
+      // 未配置或本地模式 -> 跳到云端设置页
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SupabaseSettingsScreen()),
+      );
+      return;
+    }
+    // 已配置 -> 跳到登录页
     final loggedIn = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const AuthScreen()),

@@ -3,12 +3,14 @@
 
 import 'dart:async';
 import 'package:ai_travel_ledger/core/supabase/supabase_service.dart';
+import 'package:ai_travel_ledger/data/models/app_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MockSupabaseService implements SupabaseService {
   bool _initialized = true;
   bool simulateUninitialized = false;
   bool simulateNetworkError = false;
+  AppSettings? _activeSettings;
 
   String? _userId = 'user-test-001';
   String? _email;
@@ -36,6 +38,9 @@ class MockSupabaseService implements SupabaseService {
   String? get currentUserEmail => _email;
 
   @override
+  AppSettings? get activeSettings => _activeSettings;
+
+  @override
   dynamic get client => _ProxyClient(this);
 
   @override
@@ -44,9 +49,32 @@ class MockSupabaseService implements SupabaseService {
   @override
   SupabaseStorageClient get storage => throw UnimplementedError('mock storage');
 
+  /// Mock init: 模拟成功初始化 (供无需网络真实测试的单元 / 集成测试用)
+  ///
+  /// 对应 SupabaseService.init({AppSettings? settings}) 的新签名 (2026-07-11 改造)
+  /// 返回 record (`success`, `error`) 而不是 void, 这样调用方可以区分失败路径。
   @override
-  Future<void> init() async {
+  Future<({bool success, String? error})> init({AppSettings? settings}) async {
+    _activeSettings = settings;
+    if (simulateNetworkError) {
+      _initialized = false;
+      return (success: false, error: 'mocked network error');
+    }
     _initialized = true;
+    return (success: true, error: null);
+  }
+
+  /// Mock switchMode: 等价于 init(newSettings)
+  @override
+  Future<({bool success, String? error})> switchMode(AppSettings newSettings) async {
+    return await init(settings: newSettings);
+  }
+
+  /// Mock switchToLocal: 切回本地模式, 重置 _initialized 标记
+  @override
+  Future<void> switchToLocal() async {
+    _activeSettings = null;
+    _initialized = false;
   }
 
   @override

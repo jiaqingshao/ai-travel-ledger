@@ -23,6 +23,7 @@ void main() {
   late Box<TripGroup> groupsBox;
   late Box<Expense> expensesBox;
   late Box<TransferRecord> transferBox;
+  late Box<dynamic> appSettingsBox;
   late HiveBoxes boxes;
   late MockSupabaseService mock;
   late SyncEngine engine;
@@ -48,12 +49,14 @@ void main() {
     groupsBox = await Hive.openBox<TripGroup>('groups_${DateTime.now().microsecondsSinceEpoch}');
     expensesBox = await Hive.openBox<Expense>('expenses_${DateTime.now().microsecondsSinceEpoch}');
     transferBox = await Hive.openBox<TransferRecord>('transfers_${DateTime.now().microsecondsSinceEpoch}');
+    appSettingsBox = await Hive.openBox<dynamic>('app_settings_${DateTime.now().microsecondsSinceEpoch}');
     boxes = HiveBoxes(
       trips: tripsBox,
       members: membersBox,
       groups: groupsBox,
       expenses: expensesBox,
       transferRecords: transferBox,
+      appSettings: appSettingsBox,
     );
     mock = MockSupabaseService();
     mock.signInMock('test@example.com', 'password123');
@@ -67,6 +70,7 @@ void main() {
     await groupsBox.close();
     await expensesBox.close();
     await transferBox.close();
+    await appSettingsBox.close();
   });
 
   tearDownAll(() async {

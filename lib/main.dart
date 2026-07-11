@@ -8,6 +8,7 @@ import 'data/models/group.dart';
 import 'data/models/member.dart';
 import 'data/models/transfer_record.dart';
 import 'data/models/trip.dart';
+import 'data/repositories/app_settings_repository.dart';
 import 'data/seed_data.dart';
 import 'presentation/providers/core_providers.dart';
 import 'presentation/screens/group_settlement_screen.dart';
@@ -18,9 +19,6 @@ import 'presentation/screens/trip_list_screen.dart';
 /// AI 旅行账本 - 入口
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 初始化 Supabase（如已配置；未配置则静默跳过,APP 以纯本地模式运行）
-  await SupabaseService.instance.init();
 
   await Hive.initFlutter();
 
@@ -50,6 +48,18 @@ Future<void> main() async {
   final groupsBox = await Hive.openBox<TripGroup>('groups');
   final expensesBox = await Hive.openBox<Expense>('expenses');
   final transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records');
+  final appSettingsBox = await Hive.openBox<dynamic>('app_settings');
+
+  // 读取应用设置 (含 Supabase 配置)
+  final settingsRepo = AppSettingsRepository(box: appSettingsBox);
+  final settings = settingsRepo.load();
+
+  // 初始化 Supabase（运行时从设置读取, 失败自动回退本地模式）
+  final initResult = await SupabaseService.instance.init(settings: settings);
+  if (!initResult.success && initResult.error != null) {
+    // 记录错误但不阻塞 APP 启动
+    debugPrint('⚠️ Supabase 初始化失败, 回退本地模式: ${initResult.error}');
+  }
 
   const seedMode = String.fromEnvironment('SEED', defaultValue: '');
   if (seedMode == 'demo') {
@@ -68,6 +78,7 @@ Future<void> main() async {
     groups: groupsBox,
     expenses: expensesBox,
     transferRecords: transferRecordsBox,
+    appSettings: appSettingsBox,
   );
 
   runApp(

@@ -19,6 +19,7 @@ void main() {
   late Box<TripGroup> groupsBox;
   late Box<Expense> expensesBox;
   late Box<TransferRecord> transferRecordsBox;
+  late Box<dynamic> appSettingsBox;
 
   setUpAll(() async {
     tmpDir = Directory.systemTemp.createTempSync('hive_expense_provider_');
@@ -62,6 +63,7 @@ void main() {
     groupsBox = await Hive.openBox<TripGroup>('groups_$ts');
     expensesBox = await Hive.openBox<Expense>('expenses_$ts');
     transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records_$ts');
+    appSettingsBox = await Hive.openBox<dynamic>('app_settings_$ts');
   });
 
   tearDown(() async {
@@ -70,6 +72,7 @@ void main() {
     await groupsBox.close();
     await expensesBox.close();
     await transferRecordsBox.close();
+    await appSettingsBox.close();
   });
 
   tearDownAll(() async {
@@ -87,6 +90,7 @@ void main() {
             groups: groupsBox,
             expenses: expensesBox,
             transferRecords: transferRecordsBox,
+            appSettings: appSettingsBox,
           ),
         ),
       ],

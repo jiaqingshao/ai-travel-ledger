@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
+import '../../data/models/app_settings.dart';
 import '../../data/models/expense.dart';
 import '../../data/models/group.dart';
 import '../../data/models/member.dart';
 import '../../data/models/transfer_record.dart';
 import '../../data/models/trip.dart';
+import '../../data/repositories/app_settings_repository.dart';
 
 /// 集中管理 Hive Boxes。
 ///
@@ -18,6 +20,7 @@ class HiveBoxes {
     required this.groups,
     required this.expenses,
     required this.transferRecords,
+    required this.appSettings,
   });
 
   final Box<Trip> trips;
@@ -25,10 +28,28 @@ class HiveBoxes {
   final Box<TripGroup> groups;
   final Box<Expense> expenses;
   final Box<TransferRecord> transferRecords;
+
+  /// 应用设置 box (单例 key)
+  final Box<dynamic> appSettings;
 }
 
 final hiveBoxesProvider = Provider<HiveBoxes>((ref) {
   throw UnimplementedError(
     'hiveBoxesProvider 必须在 main.dart 中用 override 提供已打开的 Hive boxes。',
   );
+});
+
+/// AppSettings 仓库 Provider
+final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
+  final boxes = ref.watch(hiveBoxesProvider);
+  return AppSettingsRepository(box: boxes.appSettings);
+});
+
+/// AppSettings 当前值 Provider (StreamProvider, 实时响应变更)
+final appSettingsProvider = StreamProvider<AppSettings>((ref) async* {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  yield repo.load();
+  await for (final s in repo.watch()) {
+    yield s;
+  }
 });
