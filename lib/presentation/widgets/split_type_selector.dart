@@ -88,6 +88,11 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
   late Set<String> _selectedGroupIds;
   late Map<String, double> _groupRatios;
 
+  // TextField controller 与 FocusNode (按金额分摊用)
+  // ISSUE-028 修复：之前在 build() 里 new controller 导致光标丢失/输入倒序
+  late Map<String, TextEditingController> _specificCtrls;
+  late Map<String, FocusNode> _specificFocuses;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +102,15 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     _specific = Map<String, double>.from(widget.initialSpecific ?? const {});
     _selectedGroupIds = Set<String>.from(widget.initialGroupIds ?? const []);
     _groupRatios = <String, double>{};
+
+    // 初始化 controllers + focus nodes (ISSUE-028 修复)
+    _specificCtrls = {
+      for (final m in widget.members)
+        m.id: TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
+    };
+    _specificFocuses = {
+      for (final m in widget.members) m.id: FocusNode(debugLabel: 'specific_${m.id}'),
+    };
 
     // 默认值
     if (_type == SplitType.equal) {
@@ -113,6 +127,51 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     // 计算初始预览
     WidgetsBinding.instance.addPostFrameCallback((_) => _emit());
   }
+
+  @override
+  void didUpdateWidget(SplitTypeSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final currentIds = widget.members.map((m) => m.id).toSet();
+    // 新增成员
+    for (final m in widget.members) {
+      _specificCtrls.putIfAbsent(
+        m.id,
+        () => TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
+      );
+      _specificFocuses.putIfAbsent(
+        m.id,
+        () => FocusNode(debugLabel: 'specific_${m.id}'),
+      );
+    }
+    // 移除已删除成员
+    _specificCtrls.removeWhere((id, ctrl) {
+      if (!currentIds.contains(id)) {
+        ctrl.dispose();
+        return true;
+      }
+      return false;
+    });
+    _specificFocuses.removeWhere((id, focus) {
+      if (!currentIds.contains(id)) {
+        focus.dispose();
+        return true;
+      }
+      return false;
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final ctrl in _specificCtrls.values) {
+      ctrl.dispose();
+    }
+    for (final focus in _specificFocuses.values) {
+      focus.dispose();
+    }
+    super.dispose();
+  }
+
+  String _formatSpecific(double v) => v > 0 ? v.toStringAsFixed(2) : '';
 
   /// 确保 map 包含所有成员（缺失填 0）
   Map<String, double> _ensureMemberKeys(
@@ -425,12 +484,15 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
   }
 
   Widget _specificRow(Member m) {
-    final ctrl = TextEditingController(
-      text: (_specific[m.id] ?? 0) > 0
-          ? (_specific[m.id] ?? 0).toStringAsFixed(2)
-          : '',
+    // ISSUE-028 修复：从 state 字段取 controller (不再每次 rebuild 新建)
+    final ctrl = _specificCtrls.putIfAbsent(
+      m.id,
+      () => TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
     );
-    // 注意：每次 build 都会新建 controller，简化用 TextField onChanged
+    final focus = _specificFocuses.putIfAbsent(
+      m.id,
+      () => FocusNode(debugLabel: 'specific_${m.id}'),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -446,6 +508,7 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
           Expanded(
             child: TextField(
               controller: ctrl,
+              focusNode: focus,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.next,
@@ -467,8 +530,14 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
                 _emit();
               },
               onSubmitted: (_) {
-                // 焦点跳到下一个成员输入框 (ISSUE-022 修复)
-                FocusScope.of(context).nextFocus();
+                // ISSUE-028 修复：自动跳到下一个成员输入框
+                final memberIds = widget.members.map((m) => m.id).toList();
+                final idx = memberIds.indexOf(m.id);
+                if (idx >= 0 && idx < memberIds.length - 1) {
+                  _specificFocuses[memberIds[idx + 1]]?.requestFocus();
+                } else {
+                  focus.unfocus(); // 最后一个成员，关闭键盘
+                }
               },
             ),
           ),
@@ -825,6 +894,10 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
       _specific.clear();
       _selectedGroupIds.clear();
       _groupRatios.clear();
+      // ISSUE-028 修复：同步清空 controllers 避免残留
+      for (final ctrl in _specificCtrls.values) {
+        ctrl.clear();
+      }
     });
   }
 
