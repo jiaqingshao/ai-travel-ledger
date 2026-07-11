@@ -683,3 +683,163 @@ one (绕过企业微信 93006)
 
 ---
 
+## 🔴 ISSUE-027 — 保存并继续按钮与分摊金额输入体验混乱【待修复】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-027 |
+| **等级** | P1 严重 (核心交互错误) |
+| **模块** | 添加费用 / SplitTypeSelector / 金额输入 |
+| **报告时间** | 2026-07-11 23:24 |
+| **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
+| **状态** | 🔧 待修复 |
+
+**症状** (用户原话):
+> "新添加的 保存并继续按钮 实际和保存没有区别 都直接退出认为输入结束。 实际应该退出现在输入的单元格，然后用户继续选择其他输入项。例如我输入按固定分摊金额 后 我要继续输入b 而不是直接退出了保存了。"
+
+**根因分析** (两个不同问题被混在一起):
+
+1. **"保存并继续" 按钮语义不清**:
+   - 当前实现: 保存当前费用 + 重置表单 (保留付款人/类别) + 留在当前页 (位置: `expense_create_screen.dart:207 _submitAndContinue`)
+   - 用户期望: 可能是"完成当前字段输入 + 自动跳到下一个相关字段" (e.g. 输入 a 后跳到 b)
+   - **问题**: 按钮名"保存并继续"语义双关, 用户分不清是"继续下一笔费用"还是"继续当前字段"
+
+2. **按金额分摊输入框 Bug** (位置: `split_type_selector.dart:428 _specificRow`):
+   - 代码: `final ctrl = TextEditingController(text: ...)` 在 build() 里新建 controller
+   - 注释明言: "注意：每次 build 都会新建 controller, 简化用 TextField onChanged"
+   - **问题**: 每次输入都触发 setState → rebuild → 新 controller 从 `_specific[m.id]` 重置 text → 光标丢失, 输入体验混乱
+
+**修复方案**:
+- ✅ (2) 把 `_specificRow` 的 controller 提升为 state 字段, 随 `_specific` 同步, 不再每次 rebuild 新建
+- ✅ (2) 类似问题存在于 `_sharesRow` (按份数) 和 `_ratiosRow` (按比例), 统一修复
+- ✅ (1) 重命名"保存并继续" → "保存下一笔" 或 "保存并开新", 配 tooltip 说明用途
+- ✅ (1) 在 SplitTypeSelector 的按金额分摊模式, 输入完 a 后自动 focus 到 b (用 FocusNode + FocusScope.nextFocus)
+
+---
+
+## 🔴 ISSUE-028 — 金额输入倒序 + 删除退出格子【待修复】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-028 |
+| **等级** | P1 严重 (核心输入体验) |
+| **模块** | SplitTypeSelector / TextField |
+| **报告时间** | 2026-07-11 23:24 |
+| **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
+| **状态** | 🔧 待修复 |
+
+**症状** (用户原话):
+> "发现输入金额时候有问题，数字是倒着录入的 我输入 1 2 3 进去后是 3 2 1 .顺序有问题。 而且我删除一个数字光标就退出这个格子 我不能连续删除，需要删除一个 点点一下 继续删除。"
+
+**根因** (已确认):
+- 同一个 bug: `_specificRow` 在 build() 里 `new TextEditingController(text: ...)`
+- 每次输入触发 setState → rebuild → 新 controller 初始化 text 为 `_specific[m.id]` 的格式化值
+- 用户输入 "1" → _specific[m.id] = 1.0 → rebuild → controller 显示 "1.00" (光标跳到末尾)
+- 用户继续输入 "2" → 因光标位置 / controller 重建, 实际插入位置异常 → 显示 "3 2 1" 倒序
+- 删除: 用户按退格 → onChanged 触发 setState → rebuild → 新 controller 替换, 焦点丢失
+
+**代码位置**:
+- `lib/presentation/widgets/split_type_selector.dart:428` `_specificRow`
+- `lib/presentation/widgets/split_type_selector.dart` (需查) `_sharesRow` (按份数)
+- `lib/presentation/widgets/split_type_selector.dart` (需查) `_ratiosRow` (按比例)
+
+**修复方案**:
+- ✅ 提升 controller 为 `late Map<String, TextEditingController> _ctrls`
+- ✅ 在 initState / didUpdateWidget 同步初始化和更新
+- ✅ 在 dispose 统一释放
+- ✅ onChanged 只更新 `_specific[m.id]` + _emit(), 不重建 controller
+
+---
+
+## 🟡 ISSUE-029 — 云端同步按钮文案 + 结算空白页【待修复】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-029 |
+| **等级** | P2 一般 (体验差, 不阻塞核心) |
+| **模块** | AuthScreen + SettlementScreen |
+| **报告时间** | 2026-07-11 23:24 |
+| **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
+| **状态** | 🔧 待修复 |
+
+### 问题 1: 云端同步按钮进入后文案令人困惑
+
+**症状** (用户原话):
+> "界面右上角的云端同步按钮， 进去后有一个继续本地使用， 云端同步未启用 这个是什么问题？"
+
+**当前行为**:
+- 用户点击右上角云朵图标 → 跳到 AuthScreen
+- AuthScreen 检测到 Supabase 未配置 → 显示 "云端同步未启用" + 一段 CLI 提示 + "继续本地使用" 按钮
+- 用户困惑: 这是错误? 是提示? 怎么"继续"?
+
+**根因**:
+- 位置: `lib/presentation/screens/auth_screen.dart:91` 整段"未启用"视图
+- 文案对普通用户太技术 (含 `flutter run --dart-define=...` 命令)
+- 按钮"继续本地使用"语义不准, 应该叫"知道了"或"返回"
+
+**修复方案**:
+- ✅ 简化文案: "云同步未配置" + 简短解释 + "返回" 按钮
+- ✅ 把 CLI 命令从 UI 移到 docs/04-deployment/local-only-mode.md
+- ✅ 在 APP 内加隐藏入口 (设置页 → 关于 → 长按版本号 5 次显示开发者模式 → 查看构建信息)
+
+### 问题 2: 新建数据后结算页一片空白
+
+**症状** (用户原话):
+> "并且新建数据后按结算 一片空白没有显示任何东西"
+
+**当前行为**:
+- 位置: `lib/presentation/screens/settlement_screen.dart:48` `_EmptyView()`
+- 用户创建旅程 + 成员 + 费用后进入结算页 → 看到 _SummaryCard (总览) + _BalancesCard (每人净收支) + 可能 _TransfersCard
+- 如果成员存在但无任何费用: balances 空 → BalancesCard 只有 "每人净收支" 标题 + 无内容 → 视觉上"空白"
+
+**根因**:
+- 结算页依赖 `settlement.balances` 有数据才显示内容
+- 当 balances 为空 map 时, UI 组件渲染空内容 (没有"暂无费用"提示)
+- 用户视觉感受 = 空白
+
+**修复方案**:
+- ✅ 在 _BalancesCard 头部加 `if (balances.isEmpty)` → "暂无费用记录" 友好提示
+- ✅ 在 _SummaryCard "总支出" 行加 `if (totalAmount == 0)` → "暂未记录任何费用" 提示 + "去添加" 按钮
+- ✅ 优化 _EmptyView 文案: 区分"无成员" / "有成员无费用" / "已结算" 三种状态
+
+---
+
+## 🟡 ISSUE-030 — 缺少"关于"页面【待新增】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-030 |
+| **等级** | P2 一般 (产品完整性) |
+| **模块** | 设置 / About |
+| **报告时间** | 2026-07-11 23:24 |
+| **报告人** | 用户 (产品反馈) |
+| **状态** | 🆕 待新增 |
+
+**症状** (用户原话):
+> "这个软件没有 关于 没有后版本号 增加关于页面 我的个人联系方式 litiboy@163.com 软件版本也上进去。"
+
+**需求**:
+- 增加"关于"页面
+- 显示:
+  - 软件名称 (AI 旅行账本)
+  - 版本号 (1.0.0+0)
+  - 作者联系方式 (litiboy@163.com)
+  - 开源仓库地址 (github.com/jiaqingshao/ai-travel-ledger)
+  - 隐私协议链接
+  - 技术栈说明 (Flutter + Supabase 等)
+  - 致谢 / License
+
+**设计**:
+- 入口: 旅程列表右上角"更多"菜单 (已有 PopupMenuButton) → 加 "关于" 项
+  - 或: 主屏右上角三个点 → 新增 "设置" → "关于"
+- 页面: 标准 AboutDialog / AboutListTile 风格 + 自定义布局
+
+**实施**:
+- ✅ 新增 `lib/presentation/screens/about_screen.dart`
+- ✅ 在 `trip_list_screen.dart` PopupMenuButton 加 "about" case
+- ✅ 添加 strings.xml 资源 (应用名/版本/作者/邮箱)
+- ✅ 隐私政策 URL 占位 (ISSUE-025 上架时会用)
+
+
+---
+
