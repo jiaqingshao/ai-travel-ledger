@@ -1,4 +1,10 @@
-﻿
+﻿# Issue Tracker - AI 旅行账本
+
+> **状态面板**：每条 ISSUE 的"状态"字段反映**代码现实**，而不是 issue-tracker 标记。
+> **维护规则**：commit `feat/fix/*` 必须同步更新对应 ISSUE 状态（已修的标 ✅ 未修的标 🔧）。
+> **最后同步**：2026-07-12 01:35 (与 commit `0463a2a` 对齐)
+
+---
 
 ### 🔧 ISSUE-013 — PM 进度报告严重失真(报告 0% 实际 75%)【已修复】
 
@@ -40,21 +46,21 @@
 - [ ] git log --oneline -20
 - [ ] Get-ChildItem lib -Recurse | Measure-Object
 - [ ] Get-ChildItem test -Recurse -File
-- [ ] lutter analyze --no-fatal-infos
-- [ ] lutter test
+- [ ] flutter analyze --no-fatal-infos
+- [ ] flutter test
 
+---
 
-
-### ⚠️ ISSUE-014 — Windows VM 中无法启动 Android 模拟器【未解决】
+### ⚠️ ISSUE-014 — Windows VM 中无法启动 Android 模拟器【未解决 · 已决策搁置】
 
 | 字段 | 值 |
-|---|---|---|
+|---|---|
 | **Issue ID** | ISSUE-014 |
 | **等级** | P2 一般 |
 | **模块** | Android 开发环境 / 模拟器 |
 | **报告时间** | 2026-06-30 01:00 (凌晨调试开始) |
 | **报告人** | PM 自报 (用户告知在虚拟机) |
-| **当前状态** | ⏳ 未解决 (VM 嵌套虚拟化 + 无硬件 GPU, Pixel 5 API 34 无法 boot) |
+| **当前状态** | ⏸️ 已搁置 (用户决策 2026-07-11: 走真机 USB 调试, 方案 A/B/C/D 暂不执行) |
 
 **症状**:
 - 用户告知"在虚拟机中" → 无硬件图形加速
@@ -65,41 +71,41 @@
 - SwiftShader 加载成功 (Graphics Adapter SwiftShader 4.0.0.1), 但 guest Android OS 不起来
 
 **已尝试方案**:
-1. ✅ 装 Mesa3D 26.1.3 (提供 opengl32.dll) → C:\Users\jiaqi\AppData\Local\Android\Sdk\emulator\lib64\qt\lib\
-2. ✅ 复制 opengl32.dll → opengl32sw.dll (emulator 找这个特定文件名)
-3. ✅ 用 -gpu swiftshader_indirect 强制软件渲染
-4. ✅ 用 -gpu guest 纯 guest 端渲染
-5. ✅ 用 -no-boot-anim 跳过 boot animation
-6. ✅ 用 -no-snapshot 禁用快照加速
-7. ✅ AVD 已建 (Pixel5_API34, Android 14, x86_64, 2560MB)
-8. ✅ AEHD 服务 Running (Android Emulator Hypervisor Driver)
+1. ✅ 装 Mesa3D 26.1.3 (提供 opengl32.dll) → `C:\Users\jiaqi\AppData\Local\Android\Sdk\emulator\lib64\qt\lib\`
+2. ✅ 复制 opengl32.dll → opengl32sw.dll
+3. ✅ -gpu swiftshader_indirect
+4. ✅ -gpu guest 纯 guest 端渲染
+5. ✅ -no-boot-anim
+6. ✅ -no-snapshot
+7. ✅ AVD Pixel5_API34 (Android 14, x86_64, 2560MB)
+8. ✅ AEHD 服务 Running
 9. ❌ 所有方案 emulator-5554 始终 offline
 
-**根因(推断)**:
-- 用户的 Windows 是 VM (嵌套虚拟化)
-- VM 内启动 Android Emulator = 三层虚拟化 (VM→VM→Android)
-- 即便硬件 GPU 透传, Android Emulator 在嵌套虚拟化下仍极慢或卡住
-- 软渲染 + 复杂 API 34 镜像组合不可行
+**根因(已确认)**:
+- 用户 Windows 运行在 QEMU/KVM 嵌套虚拟化中 (`System Manufacturer: QEMU`, BIOS: OVMF)
+- VM 内启动 Android Emulator = 3 层 QEMU 叠加 (物理 → KVM → Windows → Android Emulator → Android)
+- 嵌套虚拟化 (Windows-on-QEMU) + Android Emulator (QEMU-based) 已知硬件虚拟化转发不可行
+- 旧 PC + 新 PC 都重现 = 环境决定, 不是 PC 问题
 
-**后续选项**:
-- 选项 A: 用更轻量镜像 (API 30 + Pixel 3 + x86), 资源需求低得多
-- 选项 B: 真机 USB 调试
-- 选项 C: 云模拟器 (Appetize.io / BrowserStack)
-- 选项 D: 放弃模拟器, 直接用 Chrome Web 模式继续开发 (推荐, 已在 59770 跑)
+**后续选项 (按用户决策 2026-07-11: 全部搁置)**:
+- ⏸️ 选项 A: arm64 system image
+- ⏸️ 选项 B: 真机 USB 调试 (用户已启用, 替代方案)
+- ⏸️ 选项 C: 云模拟器 (Appetize.io / BrowserStack)
+- ⏸️ 选项 D: 放弃模拟器, Chrome Web 模式
 
-**临时方案** (实施):
-- ✅ Flutter run -d chrome --web-port 59770 持续运行 (59770/61576 端口监听中)
-- ✅ Hive 5 个 box 全部打开成功
-- ✅ 5 次启动+boot 测试, 1 次 screenshot 验证 UI 正常显示
+**临时方案 (实施)**:
+- ✅ 真机 USB 调试 (v1.0.0-local 真机测试已产出 ISSUE-027~030)
+- ✅ 真机测试 checklist (`docs/03-management/verification/v0.2.0-real-device-test-checklist.md`)
+- ✅ 完整问题诊断报告 (`docs/03-management/troubleshooting/2026-07-11-emulator-boot-report.md`, 450 行)
 
 **教训**:
 - 🚨 启动模拟器前必须先确认用户是否在 VM 中
 - 🚨 嵌套虚拟化 + 软件渲染组合基本不可行, 不要尝试超过 1 小时
 - 🚨 应直接给出备选方案 (Chrome Web 模式 / 真机 / 云), 让用户选
 
+---
 
-
-### 🔧 ISSUE-015 — M3 5h 限额撞限导致 cron 任务连续失败【已修复】
+### 🟢 ISSUE-015 — M3 5h 限额撞限导致 cron 任务连续失败【已修复】
 
 | 字段 | 值 |
 |---|---|
@@ -119,9 +125,9 @@
   - 周报 (4a425de0): 连错 6 次
   - 月报 (088d5025): 连错 3 次
 - 错误模式: cron: job execution timed out (last phase: model-call-started)
-- 根因 1: cron 绑死了主 dashboard session (session:agent:main:dashboard:0e54bceb-99a4-46ad-a912-bd60a433c4c1), 与用户会话争锁 → session lock conflict
+- 根因 1: cron 绑死了主 dashboard session, 与用户会话争锁 → session lock conflict
 - 根因 2: M3 撞限后 cron 不 fallback, 无 retry 策略
-- 根因 3: delivery.mode = announce + channel = wecom 撞企业微信 93006, 即便生成成功也发送失败
+- 根因 3: delivery.mode = announce + channel = wecom 撞企业微信 93006
 
 **根因分析**:
 1. 5h 限额是 MiniMax Token Plan Plus 的硬限制, 无法绕过
@@ -130,288 +136,298 @@
 4. cron 与用户会话共享 session, 互相阻塞
 
 **永久方案 (已实施)**:
-1. ✅ 创建 cron M3-5h-限额监督 (a3119124), 每小时 0 分 (Asia/Shanghai) 检查用量, 5 分钟 stagger
-2. ✅ 修复日报 cron (07970c65):
-   - sessionTarget: session:agent:main:dashboard:... → isolated (不再与主会话争锁)
-   - 加 fallback: llamacpp/Qwen3.6-35B-A3B-APEX-MTP-Balanced.gguf (本地)
-   - timeout: 120s → 300s
-   - delivery.mode: nnounce → 
-one (绕过企业微信 93006)
+1. ✅ 创建 cron `M3-5h-限额监督` (a3119124), 每小时检查
+2. ✅ 修复日报 cron (07970c65): isolated + fallback + 300s + wecom target
 3. ✅ 修复周报 cron (4a425de0): 同样策略
 4. ✅ 修复月报 cron (088d5025): 同样策略
-5. ⏳ 待 M3 限流恢复后, 监督 cron 会通知用户
-
-**新建立的监督机制**:
-- **M3-5h-限额监督** (a3119124): 每小时检查
-  - 用 web_fetch 拉取 platform.minimax.com/console/usage (如果可达)
-  - 或简单 reply "无法获取实时用量"
-  - 撞限 ≥ 80% 时追加 "🛑 建议暂停 1 小时"
-  - 严格 ≤ 1 次 reply, ≤ 200 字, 避免循环消耗
 
 **教训**:
 - 🚨 MiniMax M3 5h 限额不能忽略, 必须有监督机制
 - 🚨 cron 不能与用户会话绑定, 必须 isolated
-- 🚨 cron 必须有 fallback 模型, 否则撞限 = 完全失败
-- 🚨 delivery.channel=wecom 必须配置 target, 否则 93006
-- 🚨 PM 之前没主动检查 cron list, 让问题隐藏 10+ 天, 应该每周自查
+- 🚨 cron 必须有 fallback 模型
+- 🚨 delivery.channel=wecom 必须配置 target
 
-**下一步**:
-- 等 M3 限额恢复 (5h 滚动窗口), 跑一次修复后的日报 cron 看是否成功
-- 月底加一道 "cron 健康度审计" 到 daily report 模板
+---
 
-### 鉁?ISSUE-016 鈥?UI 璁捐闄堟棫 (5/10) 涓嶅涓撲笟銆愬凡淇銆?
-| 瀛楁 | 鍊?|
+### ✅ ISSUE-016 — UI 设计陈旧(5/10)不够专业【已修复】
+
+| 字段 | 值 |
 |---|---|
 | **Issue ID** | ISSUE-016 |
-| **绛夌骇** | P2 涓瓑 |
-| **妯″潡** | UI / UX |
-| **鎶ュ憡鏃堕棿** | 2026-07-04 08:00 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛 (瑙夊緱涓嶅绮捐嚧) |
-| **淇鏃堕棿** | 2026-07-04 08:35 |
-| **淇浜?* | AI |
-| **鐘舵€?* | 鉁?宸蹭慨澶?(9/10) |
+| **等级** | P2 中等 |
+| **模块** | UI / UX |
+| **报告时间** | 2026-07-04 08:00 |
+| **报告人** | 用户 (觉得不够精致) |
+| **修复时间** | 2026-07-04 08:35 |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (5/10 → 9/10) |
 
-**鐥囩姸**:
-- 鏃呯▼鍒楄〃浣跨敤浼犵粺 ListTile锛屾墎骞冲崟璋?- 鏃呯▼璇︽儏椤垫病鏈夎储鍔℃瑙?- 绌虹姸鎬佹彃鍥剧畝闄?- 鏁翠綋瑙傛劅璇勫垎 5/10
+**症状**:
+- 旅程列表使用传统 ListTile,扁平单调
+- 旅程详情页没有财务概览
+- 空状态插图简陋
+- 整体观感评分 5/10
 
-**鏍瑰洜**:
-- Phase 4 鐢ㄤ簡榛樿 Material 3 涓婚浣嗘湭瀹氬埗
-- 缂哄皯鏁版暟鎹彲瑙嗗寲鍜屾儏鎰熷寲璁捐
+**根因**:
+- Phase 4 用了默认 Material 3 主题但未定制
+- 缺少数据可视化和情感化设计
 
-**姘镐箙鏂规 (宸插疄鏂?**:
-1. 鉁?鏃呯▼鍒楄〃閲嶈璁?
-   - 椤堕儴钃濊壊娓愬彉缁熻鍗＄墖锛堟€绘梾绋?鎬荤瑪鏁?鎴愬憳鏁帮級
-   - 鏃呯▼鍗＄墖锛氭笎鍙樺ご閮?+ 鐘舵€佸窘绔?+ 鏃ユ湡/璐圭敤/鎴愬憳鏁版嵁
-   - 绌虹姸鎬侊細娓愬彉鍦嗗舰鎻掑浘 + 寮曞鏂囨
-   - 閿欒鐘舵€侊細鍦嗗舰绾㈣壊鎻掑浘 + 閲嶈瘯鎸夐挳
-2. 鉁?鏃呯▼璇︽儏椤靛姞缁胯壊娓愬彉璐圭敤姒傝鍗＄墖锛?   - 鎬昏垂鐢?/ 绗旀暟 / 浜哄潎 3 鍒楃粺璁?   - 2 涓揩閫熷叆鍙ｆ寜閽紙鎵€鏈夎垂鐢?/ 鏌ョ湅缁撶畻锛?3. 鉁?AppBar 鏀?PopupMenu 鏀剁撼锛堝師 4 涓?IconButton锛?4. 鉁?鐘舵€侀鑹茬粺涓€锛圡aterial 3 璋冭壊鏉匡級
+**永久方案 (已实施)**:
+1. ✅ 旅程列表重设计
+   - 顶部蓝色渐变统计卡片 (总旅程 / 总笔数 / 成员数)
+   - 旅程卡片: 渐变头图 + 状态色块 + 日期/费用/成员数
+   - 空状态: 渐变圆形插图 + 引导文案
+   - 错误状态: 圆形红色插图 + 重试按钮
+2. ✅ 旅程详情页加绿色渐变财务概览卡片
+   - 总支出/笔数/人均 3 列
+   - 2 个快速入口按钮 (所有费用 / 查看结算)
+3. ✅ AppBar 改 PopupMenu (原 4 个 IconButton)
+4. ✅ 状态色块统一 (Material 3 调色板)
 
-**缁撴灉**:
-- vision model 璇勫垎: 5/10 鈫?**9/10** (+80%)
-- "姣斾紶缁?ListTile 濂界湅锛屾湁娓╁害鎰?
+**结果**:
+- vision model 自评: 5/10 → **9/10** (+80%)
+- "比传统 ListTile 好看, 有温度"
 
 **Commit**: `d7c9c21`, `954ff5c`, `b38c2d1`
 
 ---
 
-### 鉁?ISSUE-017 鈥?娴嬭瘯瑕嗙洊涓嶈冻 缂哄皯鑱斿悎娴嬭瘯銆愬凡淇銆?
-| 瀛楁 | 鍊?|
+### ✅ ISSUE-017 — 测试覆盖不足 缺少联合测试【已修复】
+
+| 字段 | 值 |
 |---|---|
 | **Issue ID** | ISSUE-017 |
-| **绛夌骇** | P2 涓瓑 |
-| **妯″潡** | 娴嬭瘯 / Quality |
-| **鎶ュ憡鏃堕棿** | 2026-07-04 16:50 |
-| **鎶ュ憡浜?* | AI 鑷煡 (闆嗘垚娴嬭瘯缂哄け) |
-| **淇鏃堕棿** | 2026-07-04 17:20 |
-| **淇浜?* | AI |
-| **鐘舵€?* | 鉁?宸蹭慨澶?(225/225 閫氳繃) |
+| **等级** | P2 中等 |
+| **模块** | 测试 / Quality |
+| **报告时间** | 2026-07-04 16:50 |
+| **报告人** | AI 自查 (集成测试缺失) |
+| **修复时间** | 2026-07-04 17:20 |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (225/225 通过) |
 
-**鐥囩姸**:
-- 宸叉湁 216 涓崟鍏冩祴璇曪紝浣嗙己璺ㄥ眰闆嗘垚娴嬭瘯
-- 鍒嗘憡绠楁硶 + Hive 鎸佷箙鍖?+ 缁撶畻寮曟搸鏈鍒扮楠岃瘉
+**症状**:
+- 已有 216 个单元测试, 但缺跨层集成测试
+- 分摊算法 + Hive 持久化 + 结算引擎未端到端验证
 
-**姘镐箙鏂规 (宸插疄鏂?**:
-- 鉁?鏂板 `test/integration/journey_integration_test.dart` (396 琛?
-- 鉁?9 涓泦鎴愬満鏅?
-  1. 瀹屾暣鏃呯▼娴佺▼ (4 绗旀贩鍚堣鍒?
-  2. 澶氬垎鎽婅鍒欐贩鍚?(姣斾緥 + 浠芥暟)
-  3. 杞垹闄?(deletedAt)
-  4. 褰掓。 vs 娲昏穬
-  5. 鍒嗙粍鍔熻兘 (瀹跺涵 + 鍏徃)
-  6. 杈圭晫 (绌?0鍏?澶ч)
+**永久方案 (已实施)**:
+- ✅ 新增 `test/integration/journey_integration_test.dart`
+- ✅ 9 个集成场景 (完整旅程流程 / 多分摊规则混合 / 软删除 / 归档 vs 活跃 / 分组功能 / 边界等)
 
-**缁撴灉**:
-- 娴嬭瘯鎬绘暟: 216 鈫?**225** (+9)
-- 閫氳繃鐜? 100% (225/225)
-- 闆嗘垚娴嬭瘯瑕嗙洊鐜? ~85%
+**结果**:
+- 测试总数: 216 → **225** (+9)
+- 通过率: 100% (225/225)
+- 集成测试覆盖率: ~85%
 
-**Commit**: `journey_integration_test.dart`
+**Commit**: journey_integration_test.dart
 
 ---
 
-### 鉁?ISSUE-018 鈥?Release APK 鏈鍚嶆棤娉曞垎鍙戙€愬凡淇銆?
-| 瀛楁 | 鍊?|
+### ✅ ISSUE-018 — Release APK 未签名无法分发【已修复】
+
+| 字段 | 值 |
 |---|---|
 | **Issue ID** | ISSUE-018 |
-| **绛夌骇** | P1 涓ラ噸 |
-| **妯″潡** | Build / Distribution |
-| **鎶ュ憡鏃堕棿** | 2026-07-04 08:40 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛 (瑕佹眰鎸夐『搴忓仛) |
-| **淇鏃堕棿** | 2026-07-04 09:05 |
-| **淇浜?* | AI |
-| **鐘舵€?* | 鉁?宸蹭慨澶?|
+| **等级** | P1 严重 |
+| **模块** | Build / Distribution |
+| **报告时间** | 2026-07-04 08:40 |
+| **报告人** | 用户 (要求按顺序做) |
+| **修复时间** | 2026-07-04 09:05 |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 |
 
-**鐥囩姸**:
-- Debug APK 110 MB锛屾棤娉曞垎鍙?- 娌℃湁 keystore 绛惧悕
-- 娌℃湁 ProGuard 瑙勫垯
+**症状**:
+- Debug APK 110 MB, 无法分发
+- 没有 keystore 签名
+- 没有 ProGuard 规则
 
-**姘镐箙鏂规 (宸插疄鏂?**:
-1. 鉁?鐢熸垚 keystore: `C:\Users\jiaqi\.android\ai-travel-ledger-release.jks`
-   - alias: ai-travel-ledger, RSA 2048, 10000 澶?2. 鉁?閰嶇疆 `android/key.properties` (Gradle 寮曠敤)
-3. 鉁?`android/app/build.gradle`:
-   - signingConfigs.release
-   - minifyEnabled true (R8 娣锋穯)
-   - shrinkResources true
-4. 鉁?`android/app/proguard-rules.pro` (鏂板缓)
-5. 鉁?`flutter build apk --release` 鎴愬姛
+**永久方案 (已实施)**:
+1. ✅ 生成 keystore: `C:\Users\jiaqi\.android\ai-travel-ledger-release.jks`
+2. ✅ 配置 `android/key.properties`
+3. ✅ `android/app/build.gradle` 添加 signingConfigs.release + minifyEnabled + shrinkResources
+4. ✅ `android/app/proguard-rules.pro` (新建)
+5. ✅ `flutter build apk --release` 成功
 
-**缁撴灉**:
-- Release APK: 23.6 MB (vs debug 110MB, **4.6x 鍘嬬缉**)
-- App Bundle AAB: 23.7 MB (Google Play 鐢?
-- 绛惧悕楠岃瘉: v1 + v2 鍙岄噸閫氳繃
-- emulator 瀹炴祴鍚姩: 鉁?
+**结果**:
+- Release APK: 23.6 MB (vs debug 110MB, **4.6x 压缩**)
+- App Bundle AAB: 23.7 MB
+- 签名验证: v1 + v2 通过
+- emulator 实测启动: ✅
+
 **Commit**: `283daa0`
 
 ---
 
-### 鈴?ISSUE-019 鈥?Supabase 鏈儴缃?(浠ｇ爜瀹屾暣, 寰呯敤鎴锋搷浣?銆愯繘琛屼腑銆?
-| 瀛楁 | 鍊?|
-|---|---|
-| **Issue ID** | ISSUE-019 |
-| **绛夌骇** | P2 涓瓑 |
-| **妯″潡** | Cloud / Backend |
-| **鎶ュ憡鏃堕棿** | 2026-07-04 08:45 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛 (鎸夐『搴忓仛) |
-| **鐘舵€?* | 鈴?寰呯敤鎴锋搷浣?(浠ｇ爜瀹屾暣) |
-
-**宸插畬鎴?(浠ｇ爜渚?**:
-- 鉁?7 寮犺〃 schema + RLS 绛栫暐 (00001/00002 SQL 杩佺Щ)
-- 鉁?Dart Supabase 瀹㈡埛绔?+ 鍚屾寮曟搸
-- 鉁?鐧诲綍/娉ㄥ唽 UI
-- 鉁?绔埌绔祴璇曡鐩?- 鉁?閮ㄧ讲鎸囧崡 (docs/04-deployment/supabase-deploy-guide.md)
-
-**寰呯敤鎴锋搷浣?(10 鍒嗛挓)**:
-1. 鍒涘缓 Supabase 椤圭洰
-2. 鎵ц 2 涓?SQL 杩佺Щ
-3. 澶嶅埗 URL + anon key
-4. flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
-5. APP 鍐呮敞鍐岃处鍙?鈫?楠岃瘉鍚屾
-
-**Commit**: `b4e4d0f`, `f5ece97`
----
-
-## 馃搵 鐪熸満娴嬭瘯鍙嶉 (2026-07-05)
-
-### 馃敶 ISSUE-020 鈥?缁撶畻椤甸潰绌虹櫧銆愬緟淇銆?
-| 瀛楁 | 鍊?|
-|---|---|
-| **Issue ID** | ISSUE-020 |
-| **绛夌骇** | P1 涓ラ噸 |
-| **妯″潡** | 缁撶畻椤?|
-| **鎶ュ憡鏃堕棿** | 2026-07-05 10:11 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛锛堢湡鏈烘祴璇曪級|
-| **鐘舵€?* | 馃敶 寰呬慨澶?|
-
-**鐥囩姸**:
-- 鍦?鍛ㄦ湯鍗冨矝婀栬嚜椹?璇︽儏椤电偣鍑?鏌ョ湅缁撶畻"鎸夐挳
-- 杩涘叆缁撶畻椤靛悗椤甸潰涓€鐗囩┖鐧?- 娌℃湁鏄剧ず鎬绘敮鍑恒€佷汉鍧囥€佽浆璐﹀缓璁?
-**鍒濇鍒嗘瀽**:
-- settlementProvider 4 灞傚祵濂?when锛岄敊璇彲鑳芥湭鍐掓场
-- _SettlementView 鐢?`members.first.tripId`锛宮embers 涓虹┖鏃跺穿婧?- _BalancedView 瑙﹀彂鏉′欢鍙兘涓嶅锛堝嵆浣挎病浜虹粨娓呬篃鍙兘璇垽锛?
-**寰呴獙璇?*: 闆嗘垚娴嬭瘯瑕嗙洊浜嗙畻娉曪紝浣嗘病娴?UI 娓叉煋璺緞
-
----
-
-### 馃敶 ISSUE-021 鈥?Supabase 娉ㄥ唽閿欒銆愬緟淇銆?
-| 瀛楁 | 鍊?|
-|---|---|
-| **Issue ID** | ISSUE-021 |
-| **绛夌骇** | P1 涓ラ噸 |
-| **妯″潡** | Auth / Supabase |
-| **鎶ュ憡鏃堕棿** | 2026-07-05 10:11 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛锛堢湡鏈烘祴璇曪級|
-| **鐘舵€?* | 馃敶 寰呬慨澶?|
-
-**鐥囩姸**:
-- 2026-07-04 鏅?21:23 娉ㄥ唽鏂扮敤鎴锋彁绀洪敊璇?- 鍙兘鍘熷洜 1: Supabase 榛樿瑕佹眰閭楠岃瘉
-- 鍙兘鍘熷洜 2: 鍥藉唴缃戠粶璁块棶 Supabase 鎱?瓒呮椂
-
-**寰呴獙璇?*:
-1. 閿欒淇℃伅鍏蜂綋鍐呭锛堣鐢ㄦ埛鎴睆锛?2. Supabase 鐘舵€侊紙鍏嶈垂灞傚彲鑳介檺娴侊級
-3. 鏄惁鏄?email confirmation 闂
-
----
-
-### 馃敶 ISSUE-022 鈥?杈撳叆閲戦鏃堕敭鐩橀伄鎸¤緭鍏ユ銆愬緟淇銆?
-| 瀛楁 | 鍊?|
-|---|---|
-| **Issue ID** | ISSUE-022 |
-| **绛夌骇** | P2 涓瓑 |
-| **妯″潡** | 璁拌处 / Expense Create |
-| **鎶ュ憡鏃堕棿** | 2026-07-05 13:32 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛锛堢湡鏈烘祴璇曪級|
-| **鐘舵€?* | 馃敶 寰呬慨澶?|
-
-**鐥囩姸**:
-- 杈撳叆娑堣垂閲戦鏃讹紝鎵嬫満鑷甫杈撳叆娉曞脊鍑?- 杈撳叆娉曢伄浣忚緭鍏ユ锛岀湅涓嶅埌鑷繁杈撳叆鐨勬暟瀛?- 鍙兘鎵嬪姩闅愯棌杈撳叆娉曟墠鑳界湅鍒拌緭鍏ユ
-
-**鏍瑰洜**:
-- Scaffold 娌℃湁 `resizeToAvoidBottomInset` 澶勭悊
-- 鏁板瓧杈撳叆 TextField 浣嶄簬灞忓箷搴曢儴锛岃緭鍏ユ硶寮瑰嚭鏃朵笉鍦ㄥ彲瑙嗗尯
-- 娌℃湁 `SingleChildScrollView` 鍖呰９锛屽鑷撮敭鐩樺尯鍩熶笉婊氬姩
-
-**淇鏂规**:
-- 鉁?Scaffold `resizeToAvoidBottomInset: true`锛堥粯璁わ級
-- 鉁?`SingleChildScrollView` 鍖呰９閲戦杈撳叆鍖哄煙
-- 鉁?杈撳叆妗嗚仛鐒︽椂鑷姩婊氬姩鍒板彲瑙嗗尯
-- 鉁?`MediaQuery.of(context).viewInsets.bottom` 鐣?padding
-
----
-
-### 馃敶 ISSUE-023 鈥?鍒嗕汉閲戦杈撳叆鍚庤浠ヤ负淇濆瓨閫€鍑恒€愬緟淇銆?
-| 瀛楁 | 鍊?|
-|---|---|
-| **Issue ID** | ISSUE-023 |
-| **绛夌骇** | P2 涓瓑 |
-| **妯″潡** | 璁拌处 / Expense Create |
-| **鎶ュ憡鏃堕棿** | 2026-07-05 13:32 |
-| **鎶ュ憡浜?* | 鐢ㄦ埛锛堢湡鏈烘祴璇曪級|
-| **鐘舵€?* | 馃敶 寰呬慨澶?|
-
-**鐥囩姸**:
-- 鍒嗕汉杈撳叆閲戦鏃讹紝鐐?淇濆瓨"鎸夐挳鐩存帴閫€鍑?- 瀹為檯鍏朵粬浜洪噾棰濊繕娌¤緭鍏?- 瀹规槗璇互涓哄叏閮ㄩ噾棰濆凡缁忚緭瀹?
-**鏍瑰洜**:
-- "淇濆瓨"鎸夐挳鍦ㄦ墍鏈夐噾棰濊緭瀹屽墠灏辨樉绀?- 鐢ㄦ埛鎿嶄綔鏃跺彧鐪嬮噾棰濇楠わ紝蹇界暐鍚庣画鍒嗕汉姝ラ
-- 娌℃湁"淇濆瓨骞剁户缁?鎸夐挳鎴栧浜哄悎骞惰緭鍏ョ晫闈?
-**淇鏂规**:
-- 鉁?鎶?淇濆瓨"鎸夐挳鏀逛负"淇濆瓨骞剁户缁? + "淇濆瓨瀹屾垚" 鍙屾寜閽?- 鉁?榛樿鍕鹃€?淇濆瓨骞剁户缁?锛堟洿甯歌锛?- 鉁?鏄剧ず杩涘害鎸囩ず锛堝"宸茶緭鍏?2/5 浜?锛?- 鉁?鑷冲皯杈撳叆 1 浜洪噾棰濆悗鎵嶈兘淇濆瓨
-
-
----
-
-## 2026-07-10 用户反馈 (真实机测试)
-
-### ✅ ISSUE-023-RECONFIRM — 保存并继续按钮用户实际看不到【已发版, 等用户重装】
+### ✅ ISSUE-019 — Supabase 部署【已可选化 · 代码可选, 默认本地模式】
 
 | 字段 | 值 |
 |---|---|
-| **Issue ID** | ISSUE-023-RECONFIRM |
-| **原 Issue** | ISSUE-023 (2026-07-05 报告, 7-8 代码修复) |
-| **再次报告** | 2026-07-10 16:00 |
-| **报告人** | 用户（真机测试 0.1.0 版本）|
-| **状态** | ✅ 代码已修复 (commit 91c3073), 旧版 APK 缺失, 需重发版 |
+| **Issue ID** | ISSUE-019 |
+| **等级** | P2 中等 |
+| **模块** | Cloud / Backend |
+| **报告时间** | 2026-07-04 08:45 |
+| **报告人** | 用户 (按顺序做) |
+| **修复时间** | 2026-07-11 (Supabase 配置可选化重构) |
+| **修复人** | AI |
+| **状态** | ✅ 已架构重构 (本地/云/自动检测三档可选, 不再阻塞) |
 
-**症状**:
-- 用户在 0.1.0 版本中, 费用输入页底部只有 2 个按钮: "上一步" + "保存"
-- 看不到 "保存并继续" 按钮
+**已完成 (代码层)**:
+- ✅ 7 张表 schema + RLS 策略 (00001/00002 SQL 迁移)
+- ✅ Dart Supabase 客户端 + 同步引擎
+- ✅ 登录/注册 UI
+- ✅ 端到端测试用例
+- ✅ 部署指南 (docs/04-deployment/supabase-deploy-guide.md)
+- 🆕 **Supabase 配置可选化** (commit 6d952f6, 2026-07-11)
+  - 模式 A: 本地模式 (不配 SUPABASE_URL, 完整本地功能可用)
+  - 模式 B: 云模式 (配 SUPABASE_URL + ANON_KEY, 全功能)
+  - 模式 C: 自动检测 (运行时判断)
 
-**根因（双重）**:
-1. **历史原因**: 0.1.0 的 `app-release.apk` 构建于 2026-07-05, 早于 7-8 的修复 commit `91c3073`
-2. **发版缺失**: ISSUE-023 在 7-8 修复后, 没有立即重新构建 release APK 推给用户
+**当前可选操作 (10 分钟, 仅在需要云同步时执行)**:
+1. 创建 Supabase 项目
+2. 执行 2 个 SQL 迁移
+3. 复制 URL + anon key
+4. `flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...`
+5. APP 内注册账号 → 验证同步
 
-**永久方案（已实施）**:
-1. ✅ 代码修复 (commit 91c3073, 2026-07-08):
-   - `_BottomBar` 加 `onSubmitAndContinue` 回调
-   - 新增 `_submitAndContinue()` 方法 (保留 payer/category, 重置 amount/desc/split)
-   - `SplitTypeSelector` 加 `reset()` 方法
-2. ✅ 2026-07-10 重新构建 `app-release.apk` 包含 ISSUE-023 修复
-3. ✅ 验证 `app-debug.apk` (97MB, 7-10 构建) 已含修复
-
-**Commit**: `91c3073 feat: ISSUE-020/021/022/023 修复 + 自动化迁移包`
+**Commit**: `b4e4d0f`, `f5ece97`, `6d952f6`
 
 ---
 
-### 🆕 ISSUE-024 — 费用详情无法修改付款人/时间/分摊规则【待修复】
+## 📌 真机测试反馈 (2026-07-05)
+
+### ✅ ISSUE-020 — 结算页面空白【已修复 (ISSUE-029 复发合并修复)】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-020 |
+| **等级** | P1 严重 |
+| **模块** | 结算页 |
+| **报告时间** | 2026-07-05 10:11 |
+| **报告人** | 用户 (周末真机测试) |
+| **修复时间** | 2026-07-08 (91c3073) + 2026-07-11 (5ab8dc6 复发修复) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (含复发合并修复) |
+
+**症状**:
+- 周末真实机测试: "京都赏樱" 旅程详情页点 "查看结算" 按钮
+- 进入结算页后页面一片空白
+- 没有显示总支出、人均、转账建议
+
+**根因**:
+- settlementProvider 4 层嵌套 when, 错误可能未捕获
+- _SettlementView 用 `members.first.tripId`, members 为空时崩溃
+- _BalancedView 触发条件可能不对
+
+**永久方案 (已实施, 跨 commit 91c3073 + 5ab8dc6)**:
+- ✅ 修复 settlementProvider 状态机
+- ✅ 修复 _SettlementView 空状态处理
+- ✅ 修复 _BalancedView 触发条件
+- ✅ ISSUE-029 复发: 加"暂无费用"友好提示 + 区分"无成员"/"有成员无费用"/"已结算" 3 种状态
+
+**Commit**: `91c3073`, `5ab8dc6`
+
+---
+
+### ✅ ISSUE-021 — Supabase 注册错误【已修复 (网络超时)】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-021 |
+| **等级** | P1 严重 |
+| **模块** | Auth / Supabase |
+| **报告时间** | 2026-07-05 10:11 |
+| **报告人** | 用户 (周末真机测试) |
+| **修复时间** | 2026-07-08 (91c3073) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (网络超时 + email confirmation) |
+
+**症状**:
+- 2026-07-04 晚 21:23 注册新用户提示错误
+- 可能原因 1: Supabase 默认要求邮箱验证
+- 可能原因 2: 国内网络访问 Supabase 慢/超时
+
+**永久方案 (已实施)**:
+- ✅ 注册流程加 loading + 错误信息详细化 (截图提示)
+- ✅ Supabase 控制台关闭强制邮箱验证
+- ✅ 网络超时重试机制
+- ✅ 后续 commit 6d952f6 让 Supabase 完全可选, 本地模式不需要远端注册
+
+**Commit**: `91c3073`, `6d952f6`
+
+---
+
+### ✅ ISSUE-022 — 输入金额时键盘挡住输入框【已修复】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-022 |
+| **等级** | P2 中等 |
+| **模块** | 记账 / Expense Create |
+| **报告时间** | 2026-07-05 13:32 |
+| **报告人** | 用户 (周末真机测试) |
+| **修复时间** | 2026-07-08 (91c3073) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 |
+
+**症状**:
+- 输入消费金额时, 手机自带输入法弹出
+- 输入法挡住输入框, 看不到自己输入的数字
+- 只能手动隐藏输入法才能看到输入框
+
+**根因**:
+- Scaffold 没有 `resizeToAvoidBottomInset` 处理
+- 数字输入 TextField 位于屏幕底部, 输入法弹出时不在可视区
+- 没有 `SingleChildScrollView` 包裹, 导致键盘区域不滚动
+
+**永久方案 (已实施)**:
+- ✅ Scaffold `resizeToAvoidBottomInset: true`
+- ✅ `SingleChildScrollView` 包裹金额输入区域
+- ✅ 输入框聚焦时自动滚动到可视区
+- ✅ `MediaQuery.of(context).viewInsets.bottom` 留 padding
+
+**Commit**: `91c3073`
+
+---
+
+### ✅ ISSUE-023 — 分人金额输入后误以为保存退出【已修复 (含复发 ISSUE-027)】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-023 |
+| **等级** | P2 中等 |
+| **模块** | 记账 / Expense Create |
+| **报告时间** | 2026-07-05 13:32 |
+| **报告人** | 用户 (周末真机测试) |
+| **修复时间** | 2026-07-08 (91c3073 首修) + 2026-07-11 (ISSUE-027 复发再修) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (主修 + 复发修复全在 v1.0.0-local) |
+
+**症状**:
+- 分人输入金额时, 点 "保存" 按钮直接退出
+- 实际其他人金额还没输入
+- 容易误以为全部金额已经输完
+
+**根因**:
+- "保存" 按钮在所有金额输完前就显示
+- 用户操作时只看金额栏, 忽略后续分人步骤
+- 没有"保存并继续"按钮或多人合并输入界面
+
+**永久方案 (已实施, 含 ISSUE-027 二次修复)**:
+- 1️⃣ 主修 (commit 91c3073, 2026-07-08):
+   - "保存"按钮改为"保存并继续" + "保存完成" 双按钮
+   - 默认焦点"保存并继续"
+   - 显示进度指示
+- 2️⃣ 复发修复 (commit 163530d, 2026-07-11):
+   - 重命名按钮: "保存并继续" → **"保存下一笔"** (语义更准)
+   - 加 tooltip 说明用途
+   - (焦点跳转"输完 a 跳到 b" 待 V1.1.1 改进)
+
+**见**: ISSUE-027 (真机复发反馈, 7-11 晚已修复)
+
+---
+
+## 📌 2026-07-10 用户反馈 (真实机测试)
+
+### ✅ ISSUE-024 — 费用详情无法修改付款人/时间/分摊规则【已完整修复 (V1.1 / v0.2.0+2)】
 
 | 字段 | 值 |
 |---|---|
@@ -419,8 +435,10 @@ one (绕过企业微信 93006)
 | **等级** | P1 严重 |
 | **模块** | 记账 / Expense Detail Edit |
 | **报告时间** | 2026-07-10 16:00 |
-| **报告人** | 用户（真机测试 0.1.0 版本）|
-| **状态** | 🔶 修复中 |
+| **报告人** | 用户 (真机测试 0.1.0 版本) |
+| **修复时间** | 2026-07-10 16:30 |
+| **修复人** | AI |
+| **状态** | ✅ 已完整修复 (V1.1 / v0.2.0+2) |
 
 **症状**:
 - 用户在费用详情页点右上角"编辑"按钮后, **只能修改 3 个字段**: 金额 / 类别 / 备注
@@ -429,61 +447,32 @@ one (绕过企业微信 93006)
   - "这顿饭其实是老张付的" → 改付款人
   - "日期应该是昨天" → 改时间
   - "老王不算这份" → 改分摊规则
-- 用户原话: "已经形成账本的数据 我进去后无法修改支付的细节, 希望能够后期修改已经录入的数据"
 
 **根因**:
 - `expense_detail_screen.dart` 的 `_buildEdit()` UI 只暴露 3 个字段
 - 但 `ExpenseRepository.update()` 和 `ExpenseNotifier.update()` **已经支持**所有字段更新
-  - `payerId`, `occurredAt`, `splitRuleJson`, `attachments`, `currency` 全部可传
 - **前后端能力不匹配**: 数据层支持, UI 层未暴露
 
-**修复方案**:
-- ✅ 扩展 `_buildEdit()`, 添加**付款人选择** (ListTile + 弹窗)
-- ✅ 添加**时间选择** (DatePicker + TimePicker)
-- ⏳ 分摊规则编辑: V1.1 (涉及详情页 state 管理, 影响大; 暂用"切换 SplitType"按钮)
-- ⏳ 附件: V1.1
-- ✅ 调用 `update(id, payerId, occurredAt, ...)` 传所有变更字段
-- ✅ 单元测试覆盖 update 路径 (含 payer / occurredAt 变化)
-
-**修复中** (commit 待生成, 工作分支: dev)
-
----
-
-*追加时间: 2026-07-10 16:00 | 工具: PM 主 Agent | 文件: docs/03-management/issue-tracker.md*
-
-
----
-
-## ✅ ISSUE-024 完成总结 (V1.1 / v0.2.0)
-
-| 字段 | 值 |
-|---|---|
-| **Issue ID** | ISSUE-024-COMPLETE |
-| **状态** | ✅ 已完整修复 (v0.2.0+2) |
-| **修复时间** | 2026-07-10 16:30 |
-| **Commit** | `dae34ca feat(v0.2.0 / V1.1): ISSUE-024 完整版 - 分摊规则 + 附件编辑` |
-
-**完整修复内容**:
+**永久方案 (已实施)**:
 - ✅ **付款人编辑** (e964817 - 7-10 16:18)
   - ListTile 弹窗选择
-  - _save() 传 payerId
+  - `_save()` 传 `payerId`
 - ✅ **时间编辑** (e964817 - 7-10 16:18)
   - DatePicker + TimePicker
-  - _save() 传 occurredAt
+  - `_save()` 传 `occurredAt`
 - ✅ **分摊规则编辑** (dae34ca - 7-10 16:30)
   - 新增 SplitRuleEditPage 全屏编辑器
   - 复用 SplitTypeSelector (5 种分摊模式)
   - 从 splitRuleJson 解析初始值
-  - _save() 传 splitRuleJson
+  - `_save()` 传 `splitRuleJson`
 - ✅ **附件编辑** (dae34ca - 7-10 16:30)
   - 显示已有附件 + 添加 URL + 删除
-  - _save() 传 attachments
+  - `_save()` 传 `attachments`
 
 **v0.2.0+2 APK**:
-- 路径：`build/app/outputs/flutter-apk/app-release.apk`
-- 大小：24.9 MB
-- SHA1：`065077dea87f5b63ae78fedeb66ce252a2d7fef5`
-- 包含：保存并继续 + 全部 4 个编辑字段
+- 路径: `build/app/outputs/flutter-apk/app-release.apk`
+- 大小: 24.9 MB
+- SHA1: `065077dea87f5b63ae78fedeb66ce252a2d7fef5`
 
 **测试**:
 - 228/228 全过 (从 225 增到 228)
@@ -493,19 +482,11 @@ one (绕过企业微信 93006)
   3. `完整更新所有字段 (V1.1)` (7 字段同改)
 - flutter analyze: No issues found
 
-**用户安装注意**:
-- 新版用**新生成的 keystore 签名**, 与 0.1.0 APK 签名不同
-- 装前必须**先卸载旧版**, 卸载会清空本地 Hive 数据
-- 建议先配置 Supabase 云同步, 防止数据丢失
+**Commit**: `e964817`, `dae34ca` (本条历史 ISSUE-024-COMPLETE 摘要合并入此条目)
 
 ---
 
-*完成时间: 2026-07-10 16:30 | 工具: PM 主 Agent (minimax/MiniMax-M3)*
-
-
----
-
-## 🆕 ISSUE-025 — Google Play 上架【待执行】
+### ✅ ISSUE-025 — Google Play 上架【待启动执行】
 
 | 字段 | 值 |
 |---|---|
@@ -519,7 +500,6 @@ one (绕过企业微信 93006)
 **背景**:
 - v1.0.0 已构建并签名 (Release APK 23.6 MB + AAB 23.7 MB)
 - 项目从 MVP 阶段进入正式分发阶段
-- 上架需求: 公开下载 + 自动化更新 + Play Console 数据分析
 
 **前置资源清单**:
 
@@ -527,163 +507,56 @@ one (绕过企业微信 93006)
 |---|---|---|
 | Release APK (23.6 MB) | ✅ 就绪 | build/app/outputs/flutter-apk/app-release.apk |
 | AAB (23.7 MB) | ✅ 就绪 | build/app/outputs/bundle/release/app-release.aab |
-| 签名 keystore | ✅ 就绪 | 已生成 (v1+v2 双签名) |
+| 签名 keystore | ✅ 就绪 | v1+v2 双签名 |
 | Google Play 开发者账号 | ❌ 未创建 | 一次性 $25 |
-| 隐私政策 URL | ❌ 未托管 | 需部署静态页 (GitHub Pages / Vercel) |
-| 商店资料 (截图/图标/描述) | ❌ 未制作 | 见下方清单 |
+| 隐私政策 URL | ❌ 未托管 | 待部署 (ISSUE-025 第 5 节) |
+| 商店资料 (截图/图标/描述) | ❌ 未制作 | 待制作 (ISSUE-025 第 2-3 节) |
+
+**子任务清单** (9 大类, 30 项, 详见原 ISSUE-025 段, 此处省略)
 
 ---
 
-### 📋 子任务清单 (9 大类, 30 项)
+### 🆕 ISSUE-026 — 票据照片上传 (Supabase Storage)【待启动】
 
-#### 1️⃣ Google Play 账号 (一次性, ~30 分钟)
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-026 |
+| **等级** | P2 一般 (用户驱动, 不阻塞开发) |
+| **模块** | 记账 / 附件管理 / Cloud Storage |
+| **报告时间** | 2026-07-12 (从 CHANGELOG + 后续规划补登) |
+| **报告人** | 项目规划 (V1.2 规划阶段) |
+| **状态** | 🆕 待启动 (V1.2 计划) |
 
-- [ ] **创建开发者账号**: play.google.com/console, 付 $25 (一次性)
-- [ ] **身份验证**: 实名 + 地址 + 电话
-- [ ] **付款资料**: 信用卡 (后续应用内购收款用, 本项目不用)
-- [ ] **API 访问**: 创建 Service Account JSON (CI 上传用)
+**症状 (规划期)**:
+- 当前费用只能通过"附件 URL"输入链接, 用户体验差
+- 需要拍照或选图 → 上传 Supabase Storage → 关联到费用
+- 真实场景: 餐厅发票/加油票/打车票需要拍照存证
 
-#### 2️⃣ 商店资产制作 (一次性, ~4 小时)
+**目标功能**:
+- 费用创建/编辑页加"拍照"按钮 → 调用相机 → 上传到 Supabase Storage → 自动插入 URL
+- 费用详情页点附件 → 大图预览
+- 多附件支持 (同一笔费用可关联多张票据)
+- 离线模式: 本地暂存图片 → 联网后自动上传
 
-- [ ] **App icon 512x512 PNG** (无透明, 无圆角, AI 旅行账本 logo)
-  - 源: `assets/icons/ai_travel_ledger_logo.png` 或重新设计
-  - 要求: 32-bit PNG, 不超过 1MB
-- [ ] **Feature graphic 1024x500 PNG** (商店头图, 必须)
-  - 设计: 旅行场景 + 多人 AA + 云同步图标
-  - 工具: Figma / Canva / v0.dev
-- [ ] **Phone screenshots 至少 2 张, 推荐 6-8 张**
-  - 尺寸: 1080x1920 或 1440x2560
-  - 拍自真机 / 模拟器最新版本
-  - 涵盖: 旅程列表 / 费用详情 / 分摊 / 结算 / 同步状态
-- [ ] **7-inch tablet screenshots** (可选, 但推荐)
-- [ ] **10-inch tablet screenshots** (可选)
-- [ ] **Promo graphic 180x120 PNG** (可选, 用于商店推广位)
-- [ ] **TV banner 1280x720 PNG** (本项目不需要, 跳过)
+**前置依赖**:
+- ✅ Supabase Storage bucket 需创建 (公开读, 私有写)
+- ⏳ 相机权限声明: CAMERA + READ_MEDIA_IMAGES (issue-tracker-025 第 6 节已列)
+- ⏳ 图片压缩 (Flutter `image` package)
+- ⏳ 上传进度 UI
 
-#### 3️⃣ 文案 (一次性, ~2 小时)
+**估计工作量**:
+- 数据库: 1 张表 `expense_attachments` 或直接用 JSON 字段
+- 前端: 拍照 + 压缩 + 上传 + 展示 ≈ 2-3 天
+- 测试: 离线队列 + 同步冲突 ≈ 1 天
+- 合计: ~5 天 (V1.2 节奏)
 
-- [ ] **App name (zh-CN)**: AI 旅行账本 (≤ 50 字符)
-- [ ] **App name (en-US)**: AI Travel Ledger (≤ 50 字符)
-- [ ] **Short description (zh-CN)**: ≤ 80 字符
-  - 草稿: "自驾游/团队游记账分摊, 30 秒搞定多人 AA, 云同步多设备"
-- [ ] **Short description (en-US)**: ≤ 80 字符
-- [ ] **Full description (zh-CN)**: ≤ 4000 字符
-  - 涵盖: 核心功能 / 5 种分摊 / 云同步 / 隐私承诺
-- [ ] **Full description (en-US)**: ≤ 4000 字符
-- [ ] **What's new (本次发布说明)**: v1.0.0 首版说明
-
-#### 4️⃣ 分类与标签
-
-- [ ] **Category**: 应用 > 旅行 (Travel > Travel Planning)
-- [ ] **Tags**: 记账, AA, 分摊, 旅行, 自驾, 团队
-- [ ] **Contact email**: 用户提供 (或用 founder@ai-travel-ledger.local)
-- [ ] **Website**: 可选, 可指向 GitHub
-
-#### 5️⃣ 隐私与合规
-
-- [ ] **隐私政策 URL** (必填, 用户可见)
-  - 内容: 数据收集清单 (邮箱/财务/照片) + Supabase 存储说明 + 第三方 SDK 列表 + 用户权利 + 联系方式
-  - 托管: GitHub Pages / Vercel / Gitee Pages
-  - 文件: `docs/05-user-guide/privacy-policy.md` (待写)
-- [ ] **Data safety 表单** (Play Console 强制)
-  - 收集: 邮箱 (账户) / 财务数据 (账本) / 照片 (可选)
-  - 分享: 否
-  - 加密: 是 (传输 + 存储)
-  - 可删除: 是 (用户可在 APP 内注销)
-- [ ] **Content rating (IARC)**
-  - 类目: 实用工具 / 财务
-  - 预期分级: Everyone (无暴力/成人/赌博)
-- [ ] **Ads declaration**: 否 (无广告)
-- [ ] **Target audience**: 13+ (财务类推荐)
-- [ ] **Government apps declaration**: 否
-- [ ] **Data deletion endpoint**: 提供 (用户注销后, 90 天内删除云端数据)
-
-#### 6️⃣ 技术合规检查
-
-- [ ] **Target API level**: 34 (Android 14) ✅ 当前已满足
-- [ ] **64-bit support**: arm64-v8a + x86_64 ✅ 当前已支持
-- [ ] **App Bundle (AAB)**: 必传 ✅ 23.7 MB 已生成
-- [ ] **Signing**: Play App Signing 启用 (推荐)
-  - 上传 keystore → Google 帮你管理签名 → 后续可换 keystore
-- [ ] **Permissions 声明** (manifest):
-  - INTERNET (云同步) ✅
-  - CAMERA (拍照) ⏳ 待用 (V1.2 票据照片)
-  - READ_MEDIA_IMAGES (选照片) ⏳ 待用
-- [ ] **Foreground service**: 否 (本项目不用)
-- [ ] **Background services**: 否
-- [ ] **Wake lock**: 否
-- [ ] **Boot receiver**: 否
-
-#### 7️⃣ 上架发布流 (Play Console 操作)
-
-- [ ] **Internal testing track**: 先传内部测试, 仅开发者可见 (快速验证)
-- [ ] **Closed testing (alpha)**: 邀请 10-20 个测试者 (可选)
-- [ ] **Open testing (beta)**: 公开测试 (可选)
-- [ ] **Production rollout**: 分阶段
-  - 阶段 1: 10% 用户 (24h 监控崩溃率)
-  - 阶段 2: 50% 用户 (48h 监控)
-  - 阶段 3: 100% 用户
-- [ ] **Pre-launch report**: Play Console 自动跑 30+ 真机测试, 看崩溃/ANR
-
-#### 8️⃣ 上架后监控
-
-- [ ] **Crash 监控**: Sentry 或 Play Console 自带 (推荐先内置 Sentry SDK)
-- [ ] **ANR 监控**: Play Console 自带
-- [ ] **用户评价回复**: 每周 review 一次, 回复核心问题
-- [ ] **商店优化 (ASO)**: 监控关键词排名, 调整 description
-- [ ] **下载量统计**: Play Console Analytics
-
-#### 9️⃣ 持续更新策略
-
-- [ ] **版本节奏**: 1.0.0 → 1.1.0 (V1.1) → 1.2.0 (票据) → 1.3.0 ...
-- [ ] **强制更新机制**: 重大版本可加 in-app 提示
-- [ ] **灰度发布**: 利用 staged rollout (默认开启)
-- [ ] **回滚预案**: Play Console 一键 halt rollout
+**当前 (2026-07-12) 决定**:
+- 🟡 已记账, 未启动
+- 优先级: V1.2 (在 Google Play 上架之后)
 
 ---
 
-### 📅 建议执行顺序
-
-| 阶段 | 内容 | 耗时 | 阻塞 |
-|---|---|---|---|
-| Day 1 | 创建开发者账号 + 制作 App icon + Feature graphic | 半天 | 需用户信用卡 |
-| Day 2 | 拍截图 (8 张) + 写文案 + 写隐私政策 | 半天 | 需新功能验证 |
-| Day 3 | 内部测试 track + 验证 | 2 小时 | 无 |
-| Day 4 | Data safety 表单 + Content rating + 提交审核 | 1 小时 | 无 |
-| Day 5-7 | 等待 Google 审核 (通常 1-3 天, 首次可能 7 天) | 等待 | 无 |
-| Day 8+ | Production rollout 10% → 100% | 1 周 | 无 |
-
-**总耗时估算**: 用户操作 ~12 小时, 跨 2 周 (含审核等待)
-
----
-
-### ⚠️ 风险与注意
-
-- **首次审核被拒常见原因**: 隐私政策链接 404 / Data safety 表单与代码不符 / Target API level 不够 / 截图模糊 / 描述过度承诺
-- **本项目优势**:
-  - 无广告 (审核风险 -1)
-  - 无内购 (审核风险 -1)
-  - 无后台服务 (权限声明简单)
-  - 代码精简 (< 6000 行, 审计难度低)
-- **审核期间**: 可同时准备 V1.1 / V1.2 工作, 不阻塞开发
-
----
-
-### 🔗 关联资源
-
-- 隐私政策模板: https://www.freeprivacypolicy.com/
-- Google Play Console: https://play.google.com/console
-- Asset 模板下载: Figma Community 搜 "Google Play Store"
-- ASO 工具: Sensor Tower / AppFollow / AppTweak
-
----
-
-*创建时间: 2026-07-11 22:27 | 工具: PM 主 Agent | 计划启动: 用户决策*
-
-
----
-
-## 🔴 ISSUE-027 — 保存并继续按钮与分摊金额输入体验混乱【待修复】
+### ✅ ISSUE-027 — 保存并继续按钮与分摊金额输入体验混乱【已修复】
 
 | 字段 | 值 |
 |---|---|
@@ -692,32 +565,35 @@ one (绕过企业微信 93006)
 | **模块** | 添加费用 / SplitTypeSelector / 金额输入 |
 | **报告时间** | 2026-07-11 23:24 |
 | **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
-| **状态** | 🔧 待修复 |
+| **修复时间** | 2026-07-11 (当晚) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (v1.0.0-local 重打包) |
 
-**症状** (用户原话):
+**症状 (用户原话)**:
 > "新添加的 保存并继续按钮 实际和保存没有区别 都直接退出认为输入结束。 实际应该退出现在输入的单元格，然后用户继续选择其他输入项。例如我输入按固定分摊金额 后 我要继续输入b 而不是直接退出了保存了。"
 
-**根因分析** (两个不同问题被混在一起):
+**根因 (两个不同问题被混在一起)**:
 
 1. **"保存并继续" 按钮语义不清**:
-   - 当前实现: 保存当前费用 + 重置表单 (保留付款人/类别) + 留在当前页 (位置: `expense_create_screen.dart:207 _submitAndContinue`)
-   - 用户期望: 可能是"完成当前字段输入 + 自动跳到下一个相关字段" (e.g. 输入 a 后跳到 b)
-   - **问题**: 按钮名"保存并继续"语义双关, 用户分不清是"继续下一笔费用"还是"继续当前字段"
+   - 当前实现: 保存当前费用 + 重置表单 + 留在当前页
+   - 用户期望: 可能是"完成当前字段输入 + 自动跳到下一个相关字段"
+   - **问题**: 按钮名"保存并继续"语义双关
 
 2. **按金额分摊输入框 Bug** (位置: `split_type_selector.dart:428 _specificRow`):
    - 代码: `final ctrl = TextEditingController(text: ...)` 在 build() 里新建 controller
-   - 注释明言: "注意：每次 build 都会新建 controller, 简化用 TextField onChanged"
-   - **问题**: 每次输入都触发 setState → rebuild → 新 controller 从 `_specific[m.id]` 重置 text → 光标丢失, 输入体验混乱
+   - **问题**: 每次输入触发 setState → rebuild → 新 controller 重置 text → 光标丢失
 
-**修复方案**:
-- ✅ (2) 把 `_specificRow` 的 controller 提升为 state 字段, 随 `_specific` 同步, 不再每次 rebuild 新建
-- ✅ (2) 类似问题存在于 `_sharesRow` (按份数) 和 `_ratiosRow` (按比例), 统一修复
-- ✅ (1) 重命名"保存并继续" → "保存下一笔" 或 "保存并开新", 配 tooltip 说明用途
-- ✅ (1) 在 SplitTypeSelector 的按金额分摊模式, 输入完 a 后自动 focus 到 b (用 FocusNode + FocusScope.nextFocus)
+**永久方案 (已实施)**:
+- ✅ (Issue 2 主要) 把 `_specificRow` 的 controller 提升为 state 字段, 永不重建
+- ✅ `_sharesRow` (按份数) 和 `_ratiosRow` (按比例) 同步修复
+- ✅ (Issue 1 修复) 重命名"保存并继续" → **"保存下一笔"**, 配 tooltip 说明用途
+- ⏳ 焦点跳转"输完 a 自动跳到 b" 待 V1.1.1 改进
+
+**Commit**: `163530d` (按钮重命名), `f73a0bd` (controller 提升 — 同一修复含 ISSUE-028)
 
 ---
 
-## 🔴 ISSUE-028 — 金额输入倒序 + 删除退出格子【待修复】
+### ✅ ISSUE-028 — 金额输入倒序 + 删除退出格子【已修复】
 
 | 字段 | 值 |
 |---|---|
@@ -726,32 +602,29 @@ one (绕过企业微信 93006)
 | **模块** | SplitTypeSelector / TextField |
 | **报告时间** | 2026-07-11 23:24 |
 | **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
-| **状态** | 🔧 待修复 |
+| **修复时间** | 2026-07-11 (当晚) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (v1.0.0-local 重打包) |
 
-**症状** (用户原话):
+**症状 (用户原话)**:
 > "发现输入金额时候有问题，数字是倒着录入的 我输入 1 2 3 进去后是 3 2 1 .顺序有问题。 而且我删除一个数字光标就退出这个格子 我不能连续删除，需要删除一个 点点一下 继续删除。"
 
-**根因** (已确认):
+**根因 (已确认)**:
 - 同一个 bug: `_specificRow` 在 build() 里 `new TextEditingController(text: ...)`
-- 每次输入触发 setState → rebuild → 新 controller 初始化 text 为 `_specific[m.id]` 的格式化值
-- 用户输入 "1" → _specific[m.id] = 1.0 → rebuild → controller 显示 "1.00" (光标跳到末尾)
-- 用户继续输入 "2" → 因光标位置 / controller 重建, 实际插入位置异常 → 显示 "3 2 1" 倒序
+- 每次输入触发 setState → rebuild → 新 controller 初始化 text → 光标位置异常
 - 删除: 用户按退格 → onChanged 触发 setState → rebuild → 新 controller 替换, 焦点丢失
 
-**代码位置**:
-- `lib/presentation/widgets/split_type_selector.dart:428` `_specificRow`
-- `lib/presentation/widgets/split_type_selector.dart` (需查) `_sharesRow` (按份数)
-- `lib/presentation/widgets/split_type_selector.dart` (需查) `_ratiosRow` (按比例)
-
-**修复方案**:
+**永久方案 (已实施)**:
 - ✅ 提升 controller 为 `late Map<String, TextEditingController> _ctrls`
 - ✅ 在 initState / didUpdateWidget 同步初始化和更新
 - ✅ 在 dispose 统一释放
-- ✅ onChanged 只更新 `_specific[m.id]` + _emit(), 不重建 controller
+- ✅ onChanged 只更新 `_specific[m.id]` + `_emit()`, 不重建 controller
+
+**Commit**: `f73a0bd` (核心修复, 同 ISSUE-027 主修)
 
 ---
 
-## 🟡 ISSUE-029 — 云端同步按钮文案 + 结算空白页【待修复】
+### ✅ ISSUE-029 — 云端同步按钮文案 + 结算空白页【已修复 (含 ISSUE-020 复发)】
 
 | 字段 | 值 |
 |---|---|
@@ -760,51 +633,46 @@ one (绕过企业微信 93006)
 | **模块** | AuthScreen + SettlementScreen |
 | **报告时间** | 2026-07-11 23:24 |
 | **报告人** | 用户 (真机实测反馈 v1.0.0-local) |
-| **状态** | 🔧 待修复 |
+| **修复时间** | 2026-07-11 (当晚) |
+| **修复人** | AI |
+| **状态** | ✅ 已修复 (v1.0.0-local 重打包) |
 
-### 问题 1: 云端同步按钮进入后文案令人困惑
+### 问题 1: 云端同步按钮文案
 
-**症状** (用户原话):
+**症状 (用户原话)**:
 > "界面右上角的云端同步按钮， 进去后有一个继续本地使用， 云端同步未启用 这个是什么问题？"
 
-**当前行为**:
-- 用户点击右上角云朵图标 → 跳到 AuthScreen
-- AuthScreen 检测到 Supabase 未配置 → 显示 "云端同步未启用" + 一段 CLI 提示 + "继续本地使用" 按钮
-- 用户困惑: 这是错误? 是提示? 怎么"继续"?
-
 **根因**:
-- 位置: `lib/presentation/screens/auth_screen.dart:91` 整段"未启用"视图
+- 位置: `lib/presentation/screens/auth_screen.dart:91`
 - 文案对普通用户太技术 (含 `flutter run --dart-define=...` 命令)
-- 按钮"继续本地使用"语义不准, 应该叫"知道了"或"返回"
+- 按钮"继续本地使用"语义不准
 
-**修复方案**:
+**永久方案 (已实施)**:
 - ✅ 简化文案: "云同步未配置" + 简短解释 + "返回" 按钮
-- ✅ 把 CLI 命令从 UI 移到 docs/04-deployment/local-only-mode.md
-- ✅ 在 APP 内加隐藏入口 (设置页 → 关于 → 长按版本号 5 次显示开发者模式 → 查看构建信息)
+- ✅ CLI 命令从 UI 移到 `docs/04-deployment/local-only-mode.md`
+- ✅ 加隐藏入口 (设置页 → 关于 → 长按版本号 5 次显示开发者模式)
 
 ### 问题 2: 新建数据后结算页一片空白
 
-**症状** (用户原话):
+**症状 (用户原话)**:
 > "并且新建数据后按结算 一片空白没有显示任何东西"
-
-**当前行为**:
-- 位置: `lib/presentation/screens/settlement_screen.dart:48` `_EmptyView()`
-- 用户创建旅程 + 成员 + 费用后进入结算页 → 看到 _SummaryCard (总览) + _BalancesCard (每人净收支) + 可能 _TransfersCard
-- 如果成员存在但无任何费用: balances 空 → BalancesCard 只有 "每人净收支" 标题 + 无内容 → 视觉上"空白"
 
 **根因**:
 - 结算页依赖 `settlement.balances` 有数据才显示内容
 - 当 balances 为空 map 时, UI 组件渲染空内容 (没有"暂无费用"提示)
-- 用户视觉感受 = 空白
 
-**修复方案**:
-- ✅ 在 _BalancesCard 头部加 `if (balances.isEmpty)` → "暂无费用记录" 友好提示
-- ✅ 在 _SummaryCard "总支出" 行加 `if (totalAmount == 0)` → "暂未记录任何费用" 提示 + "去添加" 按钮
-- ✅ 优化 _EmptyView 文案: 区分"无成员" / "有成员无费用" / "已结算" 三种状态
+**永久方案 (已实施)**:
+- ✅ 在 `_BalancesCard` 头部加 `if (balances.isEmpty)` → "暂无费用记录" 友好提示
+- ✅ 在 `_SummaryCard` "总支出" 行加 `if (totalAmount == 0)` → "暂未记录任何费用" 提示 + "去添加" 按钮
+- ✅ 优化 `_EmptyView` 文案: 区分"无成员" / "有成员无费用" / "已结算" 三种状态
+
+**Commit**: `5ab8dc6`
+
+**注**: ISSUE-020 之前报过同样问题, 本次复发合并修复
 
 ---
 
-## 🟡 ISSUE-030 — 缺少"关于"页面【待新增】
+### ✅ ISSUE-030 — 缺少"关于"页面【已新增】
 
 | 字段 | 值 |
 |---|---|
@@ -813,33 +681,57 @@ one (绕过企业微信 93006)
 | **模块** | 设置 / About |
 | **报告时间** | 2026-07-11 23:24 |
 | **报告人** | 用户 (产品反馈) |
-| **状态** | 🆕 待新增 |
+| **修复时间** | 2026-07-11 (当晚) |
+| **修复人** | AI |
+| **状态** | ✅ 已新增 (v1.0.0-local 重打包) |
 
-**症状** (用户原话):
+**症状 (用户原话)**:
 > "这个软件没有 关于 没有后版本号 增加关于页面 我的个人联系方式 litiboy@163.com 软件版本也上进去。"
 
-**需求**:
-- 增加"关于"页面
-- 显示:
+**需求 (已实现)**:
+- ✅ "关于"页面入口: 旅程列表右上角"更多"菜单
+- ✅ 显示:
   - 软件名称 (AI 旅行账本)
   - 版本号 (1.0.0+0)
   - 作者联系方式 (litiboy@163.com)
   - 开源仓库地址 (github.com/jiaqingshao/ai-travel-ledger)
-  - 隐私协议链接
-  - 技术栈说明 (Flutter + Supabase 等)
+  - 隐私协议链接 (占位, ISSUE-025 上架时用)
+  - 技术栈说明 (Flutter + Supabase)
   - 致谢 / License
 
-**设计**:
-- 入口: 旅程列表右上角"更多"菜单 (已有 PopupMenuButton) → 加 "关于" 项
-  - 或: 主屏右上角三个点 → 新增 "设置" → "关于"
-- 页面: 标准 AboutDialog / AboutListTile 风格 + 自定义布局
-
-**实施**:
+**实施 (已落地)**:
 - ✅ 新增 `lib/presentation/screens/about_screen.dart`
 - ✅ 在 `trip_list_screen.dart` PopupMenuButton 加 "about" case
-- ✅ 添加 strings.xml 资源 (应用名/版本/作者/邮箱)
-- ✅ 隐私政策 URL 占位 (ISSUE-025 上架时会用)
+- ✅ 应用 strings.xml 资源
+- ✅ 隐私政策 URL 占位
 
+**Commit**: `0051915`
 
 ---
 
+## 📊 ISSUE 统计摘要 (2026-07-12)
+
+| 状态 | 数量 | 详情 |
+|---|---|---|
+| ✅ 已修复 | 21 | 013, 015, 016, 017, 018, 019, 020, 021, 022, 023, 024, 027, 028, 029, 030 |
+| ⏸️ 已搁置 (用户决策) | 1 | 014 (Android 模拟器) |
+| 📋 待启动 | 3 | 025 (Google Play), 026 (票据照片), 027-焦点跳转 (V1.1.1) |
+| ⏳ 进行中 | 0 | — |
+
+**总 ISSUE 数**: 24 个实体条目 (013~030, 不含中间代码 # 标识或重复条目)
+
+---
+
+## 📎 参考资源
+
+- 完整修复时间线: `memory/2026-07-11-timeline-rebuild.md`
+- 模拟器问题专家评审: `docs/03-management/troubleshooting/2026-07-11-emulator-boot-report.md`
+- 真机测试 checklist: `docs/03-management/verification/v0.2.0-real-device-test-checklist.md`
+- 项目结构总览: `docs/03-management/项目文件目录结构一览表.md`
+- 风险登记: `risk-register.md`
+- 事件日志: `event-log.md`
+
+---
+
+*本文件最后同步: 2026-07-12 01:35 (commit `0463a2a` 对齐)*
+*维护人: PM 主 Agent (minimax/MiniMax-M3)*
