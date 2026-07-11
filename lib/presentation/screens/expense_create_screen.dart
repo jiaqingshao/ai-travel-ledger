@@ -219,8 +219,8 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('✅ 已保存，可继续记录下一笔'),
-        duration: Duration(seconds: 2),
+        content: Text('✅ 已保存，可继续记录下一笔 (付款人/类别已保留)'),
+        duration: Duration(seconds: 3),
       ),
     );
   }
@@ -727,16 +727,20 @@ class _BottomBar extends StatelessWidget {
               const SizedBox(width: 8),
             ],
             if (isLast && onSubmitAndContinue != null) ...[
-              // ISSUE-023: 保存并继续按钮 (主操作)
+              // ISSUE-023/027: 保存并开新按钮 (主操作)
+              // 重命名避免与按金额分摊的"输入 a 跳 b" 流程混淆
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: !canSubmit || submitting ? null : onSubmitAndContinue,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                child: Tooltip(
+                  message: '保存当前费用并清空表单，准备记录下一笔相似费用\n（按金额分摊内的连续输入，请用键盘 Next 键切换字段）',
+                  child: OutlinedButton.icon(
+                    onPressed: !canSubmit || submitting ? null : onSubmitAndContinue,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('保存并开新'),
                   ),
-                  icon: const Icon(Icons.add_circle_outline, size: 18),
-                  label: const Text('保存并继续'),
                 ),
               ),
               const SizedBox(width: 8),
