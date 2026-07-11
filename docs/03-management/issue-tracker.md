@@ -501,3 +501,185 @@ one (绕过企业微信 93006)
 ---
 
 *完成时间: 2026-07-10 16:30 | 工具: PM 主 Agent (minimax/MiniMax-M3)*
+
+
+---
+
+## 🆕 ISSUE-025 — Google Play 上架【待执行】
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-025 |
+| **等级** | P2 一般 (用户驱动, 不阻塞开发) |
+| **模块** | 发布 / Google Play Console |
+| **报告时间** | 2026-07-11 22:27 |
+| **报告人** | PM 主 Agent (用户指示拆解) |
+| **状态** | 📋 计划中 (等用户决策启动) |
+
+**背景**:
+- v1.0.0 已构建并签名 (Release APK 23.6 MB + AAB 23.7 MB)
+- 项目从 MVP 阶段进入正式分发阶段
+- 上架需求: 公开下载 + 自动化更新 + Play Console 数据分析
+
+**前置资源清单**:
+
+| 资源 | 状态 | 备注 |
+|---|---|---|
+| Release APK (23.6 MB) | ✅ 就绪 | build/app/outputs/flutter-apk/app-release.apk |
+| AAB (23.7 MB) | ✅ 就绪 | build/app/outputs/bundle/release/app-release.aab |
+| 签名 keystore | ✅ 就绪 | 已生成 (v1+v2 双签名) |
+| Google Play 开发者账号 | ❌ 未创建 | 一次性 $25 |
+| 隐私政策 URL | ❌ 未托管 | 需部署静态页 (GitHub Pages / Vercel) |
+| 商店资料 (截图/图标/描述) | ❌ 未制作 | 见下方清单 |
+
+---
+
+### 📋 子任务清单 (9 大类, 30 项)
+
+#### 1️⃣ Google Play 账号 (一次性, ~30 分钟)
+
+- [ ] **创建开发者账号**: play.google.com/console, 付 $25 (一次性)
+- [ ] **身份验证**: 实名 + 地址 + 电话
+- [ ] **付款资料**: 信用卡 (后续应用内购收款用, 本项目不用)
+- [ ] **API 访问**: 创建 Service Account JSON (CI 上传用)
+
+#### 2️⃣ 商店资产制作 (一次性, ~4 小时)
+
+- [ ] **App icon 512x512 PNG** (无透明, 无圆角, AI 旅行账本 logo)
+  - 源: `assets/icons/ai_travel_ledger_logo.png` 或重新设计
+  - 要求: 32-bit PNG, 不超过 1MB
+- [ ] **Feature graphic 1024x500 PNG** (商店头图, 必须)
+  - 设计: 旅行场景 + 多人 AA + 云同步图标
+  - 工具: Figma / Canva / v0.dev
+- [ ] **Phone screenshots 至少 2 张, 推荐 6-8 张**
+  - 尺寸: 1080x1920 或 1440x2560
+  - 拍自真机 / 模拟器最新版本
+  - 涵盖: 旅程列表 / 费用详情 / 分摊 / 结算 / 同步状态
+- [ ] **7-inch tablet screenshots** (可选, 但推荐)
+- [ ] **10-inch tablet screenshots** (可选)
+- [ ] **Promo graphic 180x120 PNG** (可选, 用于商店推广位)
+- [ ] **TV banner 1280x720 PNG** (本项目不需要, 跳过)
+
+#### 3️⃣ 文案 (一次性, ~2 小时)
+
+- [ ] **App name (zh-CN)**: AI 旅行账本 (≤ 50 字符)
+- [ ] **App name (en-US)**: AI Travel Ledger (≤ 50 字符)
+- [ ] **Short description (zh-CN)**: ≤ 80 字符
+  - 草稿: "自驾游/团队游记账分摊, 30 秒搞定多人 AA, 云同步多设备"
+- [ ] **Short description (en-US)**: ≤ 80 字符
+- [ ] **Full description (zh-CN)**: ≤ 4000 字符
+  - 涵盖: 核心功能 / 5 种分摊 / 云同步 / 隐私承诺
+- [ ] **Full description (en-US)**: ≤ 4000 字符
+- [ ] **What's new (本次发布说明)**: v1.0.0 首版说明
+
+#### 4️⃣ 分类与标签
+
+- [ ] **Category**: 应用 > 旅行 (Travel > Travel Planning)
+- [ ] **Tags**: 记账, AA, 分摊, 旅行, 自驾, 团队
+- [ ] **Contact email**: 用户提供 (或用 founder@ai-travel-ledger.local)
+- [ ] **Website**: 可选, 可指向 GitHub
+
+#### 5️⃣ 隐私与合规
+
+- [ ] **隐私政策 URL** (必填, 用户可见)
+  - 内容: 数据收集清单 (邮箱/财务/照片) + Supabase 存储说明 + 第三方 SDK 列表 + 用户权利 + 联系方式
+  - 托管: GitHub Pages / Vercel / Gitee Pages
+  - 文件: `docs/05-user-guide/privacy-policy.md` (待写)
+- [ ] **Data safety 表单** (Play Console 强制)
+  - 收集: 邮箱 (账户) / 财务数据 (账本) / 照片 (可选)
+  - 分享: 否
+  - 加密: 是 (传输 + 存储)
+  - 可删除: 是 (用户可在 APP 内注销)
+- [ ] **Content rating (IARC)**
+  - 类目: 实用工具 / 财务
+  - 预期分级: Everyone (无暴力/成人/赌博)
+- [ ] **Ads declaration**: 否 (无广告)
+- [ ] **Target audience**: 13+ (财务类推荐)
+- [ ] **Government apps declaration**: 否
+- [ ] **Data deletion endpoint**: 提供 (用户注销后, 90 天内删除云端数据)
+
+#### 6️⃣ 技术合规检查
+
+- [ ] **Target API level**: 34 (Android 14) ✅ 当前已满足
+- [ ] **64-bit support**: arm64-v8a + x86_64 ✅ 当前已支持
+- [ ] **App Bundle (AAB)**: 必传 ✅ 23.7 MB 已生成
+- [ ] **Signing**: Play App Signing 启用 (推荐)
+  - 上传 keystore → Google 帮你管理签名 → 后续可换 keystore
+- [ ] **Permissions 声明** (manifest):
+  - INTERNET (云同步) ✅
+  - CAMERA (拍照) ⏳ 待用 (V1.2 票据照片)
+  - READ_MEDIA_IMAGES (选照片) ⏳ 待用
+- [ ] **Foreground service**: 否 (本项目不用)
+- [ ] **Background services**: 否
+- [ ] **Wake lock**: 否
+- [ ] **Boot receiver**: 否
+
+#### 7️⃣ 上架发布流 (Play Console 操作)
+
+- [ ] **Internal testing track**: 先传内部测试, 仅开发者可见 (快速验证)
+- [ ] **Closed testing (alpha)**: 邀请 10-20 个测试者 (可选)
+- [ ] **Open testing (beta)**: 公开测试 (可选)
+- [ ] **Production rollout**: 分阶段
+  - 阶段 1: 10% 用户 (24h 监控崩溃率)
+  - 阶段 2: 50% 用户 (48h 监控)
+  - 阶段 3: 100% 用户
+- [ ] **Pre-launch report**: Play Console 自动跑 30+ 真机测试, 看崩溃/ANR
+
+#### 8️⃣ 上架后监控
+
+- [ ] **Crash 监控**: Sentry 或 Play Console 自带 (推荐先内置 Sentry SDK)
+- [ ] **ANR 监控**: Play Console 自带
+- [ ] **用户评价回复**: 每周 review 一次, 回复核心问题
+- [ ] **商店优化 (ASO)**: 监控关键词排名, 调整 description
+- [ ] **下载量统计**: Play Console Analytics
+
+#### 9️⃣ 持续更新策略
+
+- [ ] **版本节奏**: 1.0.0 → 1.1.0 (V1.1) → 1.2.0 (票据) → 1.3.0 ...
+- [ ] **强制更新机制**: 重大版本可加 in-app 提示
+- [ ] **灰度发布**: 利用 staged rollout (默认开启)
+- [ ] **回滚预案**: Play Console 一键 halt rollout
+
+---
+
+### 📅 建议执行顺序
+
+| 阶段 | 内容 | 耗时 | 阻塞 |
+|---|---|---|---|
+| Day 1 | 创建开发者账号 + 制作 App icon + Feature graphic | 半天 | 需用户信用卡 |
+| Day 2 | 拍截图 (8 张) + 写文案 + 写隐私政策 | 半天 | 需新功能验证 |
+| Day 3 | 内部测试 track + 验证 | 2 小时 | 无 |
+| Day 4 | Data safety 表单 + Content rating + 提交审核 | 1 小时 | 无 |
+| Day 5-7 | 等待 Google 审核 (通常 1-3 天, 首次可能 7 天) | 等待 | 无 |
+| Day 8+ | Production rollout 10% → 100% | 1 周 | 无 |
+
+**总耗时估算**: 用户操作 ~12 小时, 跨 2 周 (含审核等待)
+
+---
+
+### ⚠️ 风险与注意
+
+- **首次审核被拒常见原因**: 隐私政策链接 404 / Data safety 表单与代码不符 / Target API level 不够 / 截图模糊 / 描述过度承诺
+- **本项目优势**:
+  - 无广告 (审核风险 -1)
+  - 无内购 (审核风险 -1)
+  - 无后台服务 (权限声明简单)
+  - 代码精简 (< 6000 行, 审计难度低)
+- **审核期间**: 可同时准备 V1.1 / V1.2 工作, 不阻塞开发
+
+---
+
+### 🔗 关联资源
+
+- 隐私政策模板: https://www.freeprivacypolicy.com/
+- Google Play Console: https://play.google.com/console
+- Asset 模板下载: Figma Community 搜 "Google Play Store"
+- ASO 工具: Sensor Tower / AppFollow / AppTweak
+
+---
+
+*创建时间: 2026-07-11 22:27 | 工具: PM 主 Agent | 计划启动: 用户决策*
+
+
+---
+
