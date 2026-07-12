@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:ai_travel_ledger/data/models/expense.dart';
+import 'package:ai_travel_ledger/data/models/attachment.dart';
 import 'package:ai_travel_ledger/data/models/group.dart';
 import 'package:ai_travel_ledger/data/models/member.dart';
 import 'package:ai_travel_ledger/data/models/transfer_record.dart';
@@ -24,6 +25,7 @@ void main() {
   late Box<Expense> expensesBox;
   late Box<TransferRecord> transferBox;
   late Box<dynamic> appSettingsBox;
+  late Box<Attachment> attachmentsBox;
   late HiveBoxes boxes;
   late MockSupabaseService mock;
   late SyncEngine engine;
@@ -50,6 +52,7 @@ void main() {
     expensesBox = await Hive.openBox<Expense>('expenses_${DateTime.now().microsecondsSinceEpoch}');
     transferBox = await Hive.openBox<TransferRecord>('transfers_${DateTime.now().microsecondsSinceEpoch}');
     appSettingsBox = await Hive.openBox<dynamic>('app_settings_${DateTime.now().microsecondsSinceEpoch}');
+    attachmentsBox = await Hive.openBox<Attachment>('attachments_${DateTime.now().microsecondsSinceEpoch}');
     boxes = HiveBoxes(
       trips: tripsBox,
       members: membersBox,
@@ -57,6 +60,7 @@ void main() {
       expenses: expensesBox,
       transferRecords: transferBox,
       appSettings: appSettingsBox,
+      attachments: attachmentsBox,
     );
     mock = MockSupabaseService();
     mock.signInMock('test@example.com', 'password123');
@@ -71,6 +75,7 @@ void main() {
     await expensesBox.close();
     await transferBox.close();
     await appSettingsBox.close();
+    await attachmentsBox.close();
   });
 
   tearDownAll(() async {

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 import '../../data/models/app_settings.dart';
+import '../../data/models/attachment.dart';
 import '../../data/models/expense.dart';
 import '../../data/models/group.dart';
 import '../../data/models/member.dart';
@@ -21,6 +22,7 @@ class HiveBoxes {
     required this.expenses,
     required this.transferRecords,
     required this.appSettings,
+    required this.attachments,
   });
 
   final Box<Trip> trips;
@@ -31,6 +33,9 @@ class HiveBoxes {
 
   /// 应用设置 box (单例 key)
   final Box<dynamic> appSettings;
+
+  /// 费用附件 box (ISSUE-026, key = `<expenseId>_<fileName>`)
+  final Box<Attachment> attachments;
 }
 
 final hiveBoxesProvider = Provider<HiveBoxes>((ref) {

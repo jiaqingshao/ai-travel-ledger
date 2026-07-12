@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/supabase/supabase_service.dart';
 import 'data/models/expense.dart';
+import 'data/models/attachment.dart';
 import 'data/models/group.dart';
 import 'data/models/member.dart';
 import 'data/models/transfer_record.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
   }
   if (!Hive.isAdapterRegistered(14)) {
     Hive.registerAdapter(TransferRecordAdapter());
+    Hive.registerAdapter(AttachmentAdapter());
   }
 
   final tripsBox = await Hive.openBox<Trip>('trips');
@@ -49,6 +51,7 @@ Future<void> main() async {
   final expensesBox = await Hive.openBox<Expense>('expenses');
   final transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records');
   final appSettingsBox = await Hive.openBox<dynamic>('app_settings');
+  final attachmentsBox = await Hive.openBox<Attachment>('attachments');
 
   // 读取应用设置 (含 Supabase 配置)
   final settingsRepo = AppSettingsRepository(box: appSettingsBox);
@@ -70,6 +73,7 @@ Future<void> main() async {
       expenses: expensesBox,
       transferRecords: transferRecordsBox,
       appSettings: appSettingsBox,
+      attachments: attachmentsBox,
     ));
   }
 
@@ -80,6 +84,7 @@ Future<void> main() async {
     expenses: expensesBox,
     transferRecords: transferRecordsBox,
     appSettings: appSettingsBox,
+    attachments: attachmentsBox,
   );
 
   runApp(

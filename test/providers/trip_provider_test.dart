@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:ai_travel_ledger/data/models/expense.dart';
+import 'package:ai_travel_ledger/data/models/attachment.dart';
 import 'package:ai_travel_ledger/data/models/group.dart';
 import 'package:ai_travel_ledger/data/models/member.dart';
 import 'package:ai_travel_ledger/data/models/transfer_record.dart';
@@ -19,6 +20,7 @@ void main() {
   late Box<Expense> expensesBox;
   late Box<TransferRecord> transferRecordsBox;
   late Box<dynamic> appSettingsBox;
+  late Box<Attachment> attachmentsBox;
 
   setUpAll(() async {
     tmpDir = Directory.systemTemp.createTempSync('hive_trip_provider_');
@@ -63,6 +65,7 @@ void main() {
     expensesBox = await Hive.openBox<Expense>('expenses_$ts');
     transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records_$ts');
     appSettingsBox = await Hive.openBox<dynamic>('app_settings_$ts');
+    attachmentsBox = await Hive.openBox<Attachment>('attachments_$ts');
   });
 
   tearDown(() async {
@@ -72,6 +75,7 @@ void main() {
     await expensesBox.close();
     await transferRecordsBox.close();
     await appSettingsBox.close();
+    await attachmentsBox.close();
   });
 
   tearDownAll(() async {
@@ -90,6 +94,7 @@ void main() {
             expenses: expensesBox,
             transferRecords: transferRecordsBox,
             appSettings: appSettingsBox,
+            attachments: attachmentsBox,
           ),
         ),
       ],
