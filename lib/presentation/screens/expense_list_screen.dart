@@ -268,14 +268,73 @@ class _ExpenseTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text('$dateLabel · ${payerName ?? "?"} 付'),
-      trailing: Text(
-        '¥ ${df.format(expense.amount)}',
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        ),
+      // ISSUE-026 step 3: trailing 为 Column，金额在上、附件徽章在下
+      trailing: ExpenseTrailing(
+        amount: expense.amount,
+        attachmentCount: expense.attachments.length,
+        df: df,
       ),
       onTap: onTap,
+    );
+  }
+}
+
+/// ISSUE-026 step 3: 费用条目右侧——金额 + 附件徽章 (如附件数 ≥ 1 才显示)
+class ExpenseTrailing extends StatelessWidget {
+  const ExpenseTrailing({
+    required this.amount,
+    required this.attachmentCount,
+    required this.df,
+  });
+
+  final double amount;
+  final int attachmentCount;
+  final NumberFormat df;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '¥ ${df.format(amount)}',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+        if (attachmentCount > 0) ...[
+          const SizedBox(height: 2),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: scheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.attach_file,
+                  size: 11,
+                  color: scheme.onTertiaryContainer,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  '$attachmentCount',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onTertiaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
