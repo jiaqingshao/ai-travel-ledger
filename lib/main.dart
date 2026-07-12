@@ -69,6 +69,7 @@ Future<void> main() async {
       groups: groupsBox,
       expenses: expensesBox,
       transferRecords: transferRecordsBox,
+      appSettings: appSettingsBox,
     ));
   }
 
