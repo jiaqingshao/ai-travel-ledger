@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/attachment.dart';
 import '../../data/models/expense.dart';
 import '../../data/models/member.dart';
 import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
+import '../widgets/attachment_picker_section.dart';
 import '../widgets/split_type_selector.dart';
 
 /// 新建费用 - 3 步流程
@@ -40,6 +42,9 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
   String _amountInput = '';
   final _descCtrl = TextEditingController();
   bool _submitting = false;
+
+  /// 已选附件 (ISSUE-026 step 2): 提交时用 url 列表传给 expense.create()
+  final List<Attachment> _pendingAttachments = [];
 
   /// 分摊规则选择器的 GlobalKey（用于提交时导出 SplitRule）
   final _splitSelectorKey = GlobalKey<SplitTypeSelectorState>();
@@ -147,6 +152,12 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
           members: members,
           tripId: widget.tripId,
           splitSelectorKey: _splitSelectorKey,
+          attachments: _pendingAttachments,
+          onAttachmentsChanged: (list) => setState(() {
+            _pendingAttachments
+              ..clear()
+              ..addAll(list);
+          }),
           onKey: _onKey,
           onBackspace: _onBackspace,
           onClear: _onClear,
@@ -216,6 +227,8 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
       if (selectorState != null) {
         selectorState.reset();
       }
+      // 重置附件 (ISSUE-026 step 2)
+      _pendingAttachments.clear();
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -252,6 +265,11 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
             description: _descCtrl.text.trim().isEmpty
                 ? null
                 : _descCtrl.text.trim(),
+            // ISSUE-026 step 2: 传递已上传的附件 URL 列表
+            attachments: _pendingAttachments
+                .where((a) => a.url.isNotEmpty)
+                .map((a) => a.url)
+                .toList(),
           );
 
       if (!mounted) return false;
@@ -479,7 +497,7 @@ class _CategoryStep extends StatelessWidget {
   }
 }
 
-/// 步骤 3：金额 + 自定义数字键盘 + 分摊规则选择（W3）
+/// 步骤 3：金额 + 自定义数字键盘 + 分摊规则选择（W3） + 附件（ISSUE-026 step 2）
 class _AmountStep extends StatelessWidget {
   const _AmountStep({
     required this.amount,
@@ -488,6 +506,8 @@ class _AmountStep extends StatelessWidget {
     required this.members,
     required this.tripId,
     required this.splitSelectorKey,
+    required this.attachments,
+    required this.onAttachmentsChanged,
     required this.onKey,
     required this.onBackspace,
     required this.onClear,
@@ -499,6 +519,8 @@ class _AmountStep extends StatelessWidget {
   final List<Member> members;
   final String tripId;
   final GlobalKey<SplitTypeSelectorState> splitSelectorKey;
+  final List<Attachment> attachments;
+  final ValueChanged<List<Attachment>> onAttachmentsChanged;
   final ValueChanged<String> onKey;
   final VoidCallback onBackspace;
   final VoidCallback onClear;
@@ -566,6 +588,15 @@ class _AmountStep extends StatelessWidget {
                   total: amount,
                   members: members,
                   tripId: tripId,
+                ),
+                const SizedBox(height: 12),
+                // ISSUE-026 step 2: 附件选择区
+                // 新建时 expenseId 用 'pending' 作为 storage 路径占位
+                AttachmentPickerSection(
+                  tripId: tripId,
+                  expenseId: 'pending',
+                  attachments: attachments,
+                  onChanged: onAttachmentsChanged,
                 ),
               ],
             ),

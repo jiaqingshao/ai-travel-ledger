@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../data/models/attachment.dart';
 import '../../data/models/expense.dart';
 import '../../data/models/member.dart';
 import '../providers/expense_provider.dart';
 import '../providers/member_provider.dart';
+import '../widgets/attachment_picker_section.dart';
+import '../widgets/attachment_thumb.dart';
+import '../widgets/attachment_viewer.dart';
 import '../widgets/split_type_selector.dart' show SplitRuleExport;
 import 'split_rule_edit_page.dart';
 
@@ -40,7 +44,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   late DateTime _editingOccurredAt;
   // V1.1: 编辑分摊规则 + 附件
   String? _editingSplitRuleJson;
-  late List<String> _editingAttachments;
+  // ISSUE-026 step 2: 附件改为 Attachment 对象列表（保留元数据）
+  late List<Attachment> _editingAttachments;
 
   @override
   void initState() {
@@ -68,7 +73,33 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     _editingPayerId = e.payerId;
     _editingOccurredAt = e.occurredAt;
     _editingSplitRuleJson = e.splitRuleJson;
-    _editingAttachments = List<String>.from(e.attachments);
+    // ISSUE-026 step 2: 从 URL 列表重建 Attachment（仅用于预览, 元数据无)
+    _editingAttachments = e.attachments
+        .where((u) => u.isNotEmpty)
+        .map((u) => Attachment(
+              url: u,
+              fileName: _fileNameFromUrl(u),
+              sizeBytes: 0,
+              mimeType: _mimeFromUrl(u),
+              uploadedAt: '',
+            ))
+        .toList();
+  }
+
+  static String _fileNameFromUrl(String url) {
+    final last = url.contains('/')
+        ? url.substring(url.lastIndexOf('/') + 1)
+        : url;
+    return last.isEmpty ? url : last;
+  }
+
+  static String _mimeFromUrl(String url) {
+    final lower = url.toLowerCase();
+    if (lower.contains('.jpg') || lower.contains('.jpeg')) return 'image/jpeg';
+    if (lower.contains('.png')) return 'image/png';
+    if (lower.contains('.webp')) return 'image/webp';
+    if (lower.contains('.gif')) return 'image/gif';
+    return 'application/octet-stream';
   }
 
   @override
@@ -354,8 +385,23 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     }
   }
 
-  // V1.1: 附件管理
+  // ISSUE-026 step 2: 附件管理 (拍照/选图模式)
   Widget _buildAttachmentsSection() {
+    if (!_editing) {
+      // 只读模式：显示缩略图列表 + 点击全屏预览
+      return _buildReadOnlyAttachments();
+    }
+    // 编辑模式：使用 AttachmentPickerSection (受控)
+    return AttachmentPickerSection(
+      tripId: widget.tripId,
+      expenseId: widget.expenseId,
+      attachments: _editingAttachments,
+      onChanged: (list) => setState(() => _editingAttachments = list),
+    );
+  }
+
+  Widget _buildReadOnlyAttachments() {
+    if (_editingAttachments.isEmpty) return const SizedBox.shrink();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -371,76 +417,54 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: _addAttachment,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('添加'),
+                Text(
+                  '${_editingAttachments.length} 张',
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               ],
             ),
-            if (_editingAttachments.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  '无附件 (点击右上"添加"输入 URL)',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
-            else
-              ..._editingAttachments.asMap().entries.map(
-                    (entry) => ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.link, size: 18),
-                      title: Text(
-                        entry.value,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        onPressed: () =>
-                            setState(() => _editingAttachments.removeAt(entry.key)),
-                      ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 110,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _editingAttachments.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, idx) {
+                  final a = _editingAttachments[idx];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: AttachmentThumb(
+                      attachment: a,
+                      onTap: () => _openAttachmentViewer(idx),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _addAttachment() async {
-    final ctrl = TextEditingController();
-    final url = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('添加附件'),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: '附件 URL',
-            hintText: 'https://...',
-            border: OutlineInputBorder(),
-          ),
+  void _openAttachmentViewer(int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AttachmentViewer(
+          attachments: _editingAttachments
+              .where((a) => a.url.isNotEmpty)
+              .toList(),
+          initialIndex: initialIndex,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-            child: const Text('添加'),
-          ),
-        ],
       ),
     );
-    if (url != null && url.isNotEmpty) {
-      setState(() => _editingAttachments.add(url));
-    }
+  }
+
+  // V1.1: 附件管理 - URL 输入模式已废弃 (ISSUE-026 step 2 改为拍照/选图)
+// 保留 _addAttachment stub 以避免残留引用报错
+  Future<void> _addAttachment() async {
+    // 旧逻辑: 输入 URL 添加附件。已被 AttachmentPickerSection 取代。
   }
 
   // ISSUE-024: 付款人选择弹窗
@@ -540,7 +564,10 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
                 : _descCtrl.text.trim(),
             occurredAt: _editingOccurredAt,
             splitRuleJson: _editingSplitRuleJson,
-            attachments: _editingAttachments,
+            attachments: _editingAttachments
+                .where((a) => a.url.isNotEmpty)
+                .map((a) => a.url)
+                .toList(),
           );
       if (mounted) {
         _snack('已保存');

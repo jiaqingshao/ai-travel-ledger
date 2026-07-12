@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
+import '../../core/supabase/supabase_service.dart';
 import '../../data/models/app_settings.dart';
 import '../../data/models/attachment.dart';
 import '../../data/models/expense.dart';
@@ -9,6 +10,7 @@ import '../../data/models/member.dart';
 import '../../data/models/transfer_record.dart';
 import '../../data/models/trip.dart';
 import '../../data/repositories/app_settings_repository.dart';
+import '../../data/repositories/attachment_repository.dart';
 
 /// 集中管理 Hive Boxes。
 ///
@@ -57,4 +59,16 @@ final appSettingsProvider = StreamProvider<AppSettings>((ref) async* {
   await for (final s in repo.watch()) {
     yield s;
   }
+});
+
+/// AttachmentRepository Provider (ISSUE-026 step 2)
+///
+/// 仅在云模式下有效；本地模式调用 upload 会抛 StateError。
+/// UI 层用 [appSettingsProvider] 判断模式, 给出友好提示。
+final attachmentRepositoryProvider = Provider<AttachmentRepository>((ref) {
+  final boxes = ref.watch(hiveBoxesProvider);
+  return AttachmentRepository(
+    supabase: SupabaseService.instance,
+    box: boxes.attachments,
+  );
 });
