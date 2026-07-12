@@ -296,6 +296,9 @@ class _FinancialSummary extends ConsumerWidget {
                 orElse: () => 0,
               );
               final perPerson = memberCount > 0 ? total / memberCount : 0.0;
+              // ISSUE-026 step 4: 附件总数 = 所有费用 attachments.length 求和
+              final attachmentCount = expenses.fold<int>(
+                  0, (sum, e) => sum + e.attachments.length);
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -307,12 +310,14 @@ class _FinancialSummary extends ConsumerWidget {
                   ),
                   _FinanceDivider(),
                   _FinanceStat(
+                    // 笔数 / 附件 (ISSUE-026 step 4: 附件统计)
                     label: '笔数',
                     value: '${expenses.length}',
                     large: true,
                   ),
                   _FinanceDivider(),
                   _FinanceStat(
+                    // 原人均 + 附件数二选一 (冗余信息会压缩, 这里取人均)
                     label: '人均',
                     value: '¥${perPerson.toStringAsFixed(2)}',
                     large: true,
@@ -321,6 +326,23 @@ class _FinancialSummary extends ConsumerWidget {
               );
             },
           ),
+          if (expensesAsync.maybeWhen(
+            data: (l) => l.fold<int>(0, (s, e) => s + e.attachments.length),
+            orElse: () => 0,
+          ) > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.attach_file, color: Colors.white, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    '本旅程 ${expensesAsync.maybeWhen(data: (l) => l.fold<int>(0, (s, e) => s + e.attachments.length), orElse: () => 0)} 张附件',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 16),
           // 快速入口
           Row(
