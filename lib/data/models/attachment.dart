@@ -11,6 +11,7 @@
 ///
 /// **JSON toMap/toJson**: 用于 Supabase 同步, `expenses.attachment_metadata` JSONB 字段
 /// 实际生产用 string[] 存 URL, 这个模型用于本地 Hive box (key='expense_<expenseId>')
+library;
 
 import 'package:hive/hive.dart';
 

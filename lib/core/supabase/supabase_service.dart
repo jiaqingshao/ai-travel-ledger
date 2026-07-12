@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/models/app_settings.dart';
-import 'supabase_config.dart';
 
 /// Supabase 服务封装
 ///

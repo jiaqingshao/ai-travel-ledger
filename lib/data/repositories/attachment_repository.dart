@@ -13,6 +13,7 @@
 /// 1. ✅ 上传本地图片到 Supabase Storage
 /// 2. ✅ 返回公开 URL + 元数据
 /// 3. ⏳ 离线队列 (后续 ISSUE-026 第 4 步)
+library;
 
 import 'dart:io';
 import 'dart:typed_data';
