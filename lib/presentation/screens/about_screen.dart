@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../config/supabase_config.dart';
+
 /// AI 旅行账本 - 关于页面
 ///
 /// ISSUE-030: 显示应用信息、版本、作者联系方式、技术栈、开源仓库
@@ -10,10 +12,13 @@ class AboutScreen extends StatelessWidget {
   // 应用元数据（ISSUE-030）
   static const String _appName = 'AI 旅行账本';
   static const String _appNameEn = 'AI Travel Ledger';
-  static const String _version = '1.0.0+0';
+  // 版本从编译时常量读取（统一来源：SupabaseConfig）
+  // - 本地版默认 1.2.0+0
+  // - 云端版可通过 --dart-define=APP_VERSION_NAME=vX.Y.Z 覆盖
+  static const String _version = SupabaseConfig.appVersionName;
   static const String _authorEmail = 'litiboy@163.com';
   static const String _githubUrl = 'https://github.com/jiaqingshao/ai-travel-ledger';
-  static const String _releaseDate = '2026-07-11';
+  static const String _releaseDate = '2026-07-13';
   static const String _description = '自驾游/团队游场景的智能记账与分摊工具。让多人 AA 结算从 30 分钟缩短到 30 秒。';
 
   @override
