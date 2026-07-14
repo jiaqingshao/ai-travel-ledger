@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../config/build_milestone.dart';
 import '../../config/supabase_config.dart';
 
 /// AI 旅行账本 - 关于页面
@@ -87,6 +88,18 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+
+            // ============ 🏆 里程碑徽章 (仅 milestone build 显示) ============
+            if (BuildMilestone.isMilestoneBuild) ...[
+              _MilestoneBadge(
+                tag: BuildMilestone.tag,
+                title: BuildMilestone.title,
+                subtitle: BuildMilestone.subtitle,
+                date: BuildMilestone.date,
+                id: BuildMilestone.id,
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // ============ 简介 ============
             Card(
@@ -286,6 +299,166 @@ class _TechRow extends StatelessWidget {
               value,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 🏆 里程碑徽章 + 详情卡片（仅 milestone build 显示）
+///
+/// 让里程碑版本在 About 页面顶部有一个金棕色醒目标记,
+/// 方便测试/分发时一眼能辨识。
+class _MilestoneBadge extends StatelessWidget {
+  const _MilestoneBadge({
+    required this.tag,
+    required this.title,
+    required this.subtitle,
+    required this.date,
+    required this.id,
+  });
+
+  final String tag;
+  final String title;
+  final String subtitle;
+  final String date;
+  final String id;
+
+  @override
+  Widget build(BuildContext context) {
+    // 金棕色 palette (Apple-style Gold + Bronze)
+    const goldBg = Color(0xFFFFF8E1);
+    const goldFg = Color(0xFF8B6914);
+    const goldBorder = Color(0xFFD4A642);
+    const goldGradStart = Color(0xFFFFD54F);
+    const goldGradEnd = Color(0xFFFFA726);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [goldBg, Color(0xFFFFEBC2)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: goldBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: goldBorder.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 顶部: 奖杯 + tag + date
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [goldGradStart, goldGradEnd],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  size: 28,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tag,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: goldFg,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      id,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: goldFg.withOpacity(0.7),
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: goldBorder,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // 标题
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF4E342E),
+            ),
+          ),
+          if (subtitle.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: goldFg.withOpacity(0.85),
+                height: 1.5,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          // 底部分割线 + milestone ID 重复（防潮吧）
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '这是里程碑版本 · 不定期推荐给用户时使用',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: goldFg.withOpacity(0.6),
+                ),
+              ),
+              Text(
+                id,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: goldFg.withOpacity(0.5),
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
         ],
       ),
