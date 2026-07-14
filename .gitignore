@@ -66,6 +66,7 @@ yarn-error.log*
 .env.local
 .env.*.local
 *.pem
+.secrets/
 
 # Supabase
 supabase/.branches
