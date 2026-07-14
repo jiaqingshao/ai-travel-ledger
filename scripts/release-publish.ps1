@@ -188,7 +188,10 @@ Write-Host ""
 
 # ===== 创建 Release =====
 Write-Host "[4/5] 创建 Release..." -ForegroundColor Yellow
-$createBody = @{
+
+# 重要：PowerShell 的 Invoke-RestMethod + ConvertTo-Json 会对中文/emoji 编码出错
+# 走 Node.js 路线：[Build JSON as UTF-8 bytes] → [Invoke-RestMethod with proper ContentType]
+$payload = @{
     tag_name         = $Tag
     target_commitish = "main"
     name             = $Title
@@ -196,15 +199,22 @@ $createBody = @{
     draft            = $false
     prerelease       = $false
     generate_release_notes = $false
-} | ConvertTo-Json -Depth 5
+}
+$tempJson = Join-Path (Get-Location) "_release-payload.json"
+$jsonUtf8 = $payload | ConvertTo-Json -Depth 5
+# 显式 UTF-8 no-BOM 写入文件（避免 Windows default encoding）
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($tempJson, $jsonUtf8, $utf8NoBom)
+Write-Host "   JSON size: $((Get-Item $tempJson).Length) bytes (UTF-8)" -ForegroundColor Gray
 
 try {
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases" -Headers $headers -Method POST -Body $createBody -ContentType "application/json"
+    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases" -Headers $headers -Method POST -Body ([System.IO.File]::ReadAllText($tempJson)) -ContentType "application/json; charset=utf-8"
     $releaseId = $release.id
     $releaseUrl = $release.html_url
     Write-Host "✅  Release 创建成功" -ForegroundColor Green
     Write-Host "   URL: $releaseUrl" -ForegroundColor Cyan
     Write-Host "   ID: $releaseId" -ForegroundColor Cyan
+    Write-Host "   Title: $Title" -ForegroundColor Cyan
 } catch {
     $errBody = $_.ErrorDetails.Message | ConvertFrom-Json -ErrorAction SilentlyContinue
     Write-Host "❌ Release 创建失败" -ForegroundColor Red
@@ -213,8 +223,10 @@ try {
     } else {
         Write-Host "   $($_.Exception.Message)" -ForegroundColor Yellow
     }
+    Remove-Item $tempJson -ErrorAction SilentlyContinue
     exit 1
 }
+Remove-Item $tempJson -ErrorAction SilentlyContinue
 Write-Host ""
 
 # ===== 上传资产 =====
