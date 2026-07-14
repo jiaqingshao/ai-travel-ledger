@@ -60,6 +60,20 @@ class AppSettings {
     );
   }
 
+  /// 与另一个 settings 合并（other 字段优先），用于：
+  /// - 本地版启动: 把用户在前端填的 URL/Key 合并进默认设置
+  /// - 云端版启动: 把编译时注入的 URL/Key 合并进用户偏好（默认 cloud 模式）
+  AppSettings mergeWith(AppSettings other) {
+    return AppSettings(
+      mode: other.mode.isNotEmpty ? other.mode : mode,
+      supabaseUrl: other.supabaseUrl.isNotEmpty ? other.supabaseUrl : supabaseUrl,
+      supabaseAnonKey: other.supabaseAnonKey.isNotEmpty ? other.supabaseAnonKey : supabaseAnonKey,
+      autoSyncEnabled: other.autoSyncEnabled,
+      lastConnectionError: other.lastConnectionError,
+      lastConnectedAt: other.lastConnectedAt ?? lastConnectedAt,
+    );
+  }
+
   /// 转为 JSON 用于持久化
   Map<String, dynamic> toJson() => {
         'mode': mode,

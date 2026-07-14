@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'config/supabase_config.dart';
 import 'core/supabase/supabase_service.dart';
 import 'data/models/expense.dart';
 import 'data/models/attachment.dart';
@@ -55,7 +56,14 @@ Future<void> main() async {
 
   // 读取应用设置 (含 Supabase 配置)
   final settingsRepo = AppSettingsRepository(box: appSettingsBox);
-  final settings = settingsRepo.load();
+  final userSettings = settingsRepo.load();
+
+  // 云端版预配置：合并编译时注入的 URL/Key（仅当 SupabaseConfig.isCloudBuild）
+  // 用户依然可以在 in-app 设置页修改 mode（切回本地），但 URL/Key 不能在 app 里改
+  // （设计意图: 云端版的配置是"开发者说了算"，用户不能误改坏后出现连接失败）
+  final settings = SupabaseConfig.isCloudBuild
+      ? userSettings.mergeWith(SupabaseConfig.cloudDefaults)
+      : userSettings;
 
   // 初始化 Supabase（运行时从设置读取, 失败自动回退本地模式）
   final initResult = await SupabaseService.instance.init(settings: settings);
