@@ -89,22 +89,22 @@
 
 ## 🆕 下一个里程碑候选
 
-- `v1.3-team` — 多用户协作（旅程邀请、成员角色权限）
+> ⚠️ **v1.3-team 暂缓**（详见 [ADR-005](docs/02-architecture/04-adr/ADR-005-android-cn-only.md)），改为 `v1.3-cn-stores`
+
+- **`v1.3-cn-stores`** ⭐ 推荐 — **国内 Android 上架**（华为/小米/OPPO/vivo/应用宝/360 等，ISSUE-034）
+  - 前置: R011 软著 + R012 ICP 备案 评估
+  - V1.3 起点试水: 1-2 个主流商店（如小米 + OPPO）
+  - 配套: 隐私政策 + 用户协议 + 应用截图 + 各商店 IAP 接入
 - `v2.0-enterprise` — 企业版（部门/项目/审批流）
-- `v2.0-ai` — AI 智能识别小票（OCR 自动记账）
+- `v2.0-ai` — AI 智能识别小票（OCR 自动记账，海外 iOS + Google Play 时启用）
 
-### ⏸️ V1.1 重启候选（详见 [ADR-004](docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md)）
+### ⏸️ 暂缓候选
 
-如市场调研 + 资源评估确认，重新启用 v0.3 暂缓的 3 个 P0：
-
-- **E-008 语音记账**（Android STT + Qwen3.6 LLM 自动归类）
-- **E-009 重复费用**（workmanager + 周期规则）
-- **E-010 旅程统计图表**（fl_chart 已加 pubspec，启用成本最低）
-
-> 决策日期: 2026-07-15
-> 评估责任人: 创始人 + 主 Agent
+- ⏸️ **iOS 适配**（ADR-005，无 Apple Developer 付费计划 + ios/ 从未启用；重启条件：付费账号 + 全球市场）
+- ⏸️ **Google Play 上架**（ADR-005，国内无法访问；重启条件：海外市场计划）
+- ⏸️ **V1.1 候选**（ADR-004）
 
 ---
 
-*最后更新：2026-07-15 — 加 ADR-004 V1.1 重启候选说明*
+*最后更新：2026-07-15 — ADR-005 调整发布路线为国内 Android only*
 *维护者: AI 旅行账本开发团队*
