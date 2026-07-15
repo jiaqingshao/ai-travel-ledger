@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -266,6 +267,10 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
         TextField(
           controller: _amountCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          // [PR-X1 修复 S-23] 限 2 位小数 + 数字格式
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$')),
+          ],
           decoration: const InputDecoration(
             labelText: '金额 *',
             prefixText: '¥ ',
