@@ -183,7 +183,9 @@ class ExpenseRepository {
       updatedAt: now,
       splitRuleJson: splitRuleJson,
       attachments: attachments,
-      syncStatus: SyncStatus.synced,
+      // [PR-3 修复 S-6] 默认 pending, 让 sync engine 有机会真正推送
+      // 旧值 synced 是 "UX 谎言" - 数据根本没真同步过
+      syncStatus: SyncStatus.pending,
       deletedAt: null,
     );
     await _box.put(expense.id, expense);

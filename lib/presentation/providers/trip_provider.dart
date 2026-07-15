@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/supabase/supabase_service.dart';
 import '../../data/models/trip.dart';
 import '../../data/repositories/trip_repository.dart';
 import 'core_providers.dart';
@@ -12,9 +13,13 @@ final tripRepositoryProvider = Provider<TripRepository>((ref) {
 
 /// 当前用户的 "createdBy" 标识。
 ///
-/// W1 阶段尚未接入 Auth，使用本地固定用户 ID。
-/// 后续接入 Supabase Auth 后改为 auth.currentUser!.id。
-const String kCurrentUserId = 'local-user';
+/// [PR-3 修复 S-8] 优先从 Supabase Auth 读 (已登录时), 未登录回退本地固定值
+/// 这样云端模式下创建的 expense/trip 归属真正的 user_id, RLS 才能正常隔离
+String kCurrentUserId() {
+  final userId = SupabaseService.instance.currentUserId;
+  if (userId != null) return userId;
+  return 'local-user';
+}
 
 /// 活跃旅程列表（自动响应 Box 变更）
 final activeTripsProvider =
@@ -65,7 +70,7 @@ class TripNotifier extends StateNotifier<AsyncValue<void>> {
         endDate: endDate,
         destination: destination,
         baseCurrency: baseCurrency,
-        createdBy: kCurrentUserId,
+        createdBy: kCurrentUserId(),
       );
       state = const AsyncValue.data(null);
       return trip;

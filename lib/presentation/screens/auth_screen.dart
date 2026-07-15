@@ -108,8 +108,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 const SizedBox(height: 12),
                 Text(
                   '当前为本地模式，数据保存在设备本地。\n'
-                  '如需开启云同步（多设备备份），请联系开发者：\n'
-                  'litiboy@163.com',
+                  '如需开启云同步（多设备备份），请通过 GitHub Issues 联系：\n'
+                  'https://github.com/jiaqingshao/ai-travel-ledger/issues',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.outline,

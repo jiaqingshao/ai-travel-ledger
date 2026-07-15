@@ -17,8 +17,9 @@ import '../models/trip.dart';
 /// 3. **拉取合并**：定时拉取云端变更，本地合并
 /// 4. **冲突解决**：使用 updated_at last-write-wins
 ///
-/// 注意：syncStatus 字段在 Expense 模型上是 SyncStatus 枚举
-/// 但 Trip/Member/Group 当前没这个字段，所以用 `_cloudVersion` map 单独追踪
+/// [PR-3 修复 S-26 / V2-2] Trip/Member/Group 实体当前没 cloudVersion 字段
+/// 也没有 `_cloudVersion` map 字段实现 - 这是技术债, 等 V1.3 统一加
+/// TODO(ISSUE-031): 给 Trip/Member/Group/Transfer 加 cloudVersion: int 字段
 class SyncEngine {
   SyncEngine({
     required HiveBoxes boxes,

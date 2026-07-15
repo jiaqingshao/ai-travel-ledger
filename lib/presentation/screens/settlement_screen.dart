@@ -59,6 +59,7 @@ class SettlementScreen extends ConsumerWidget {
               return _SettlementView(
                 settlement: settlement,
                 members: members,
+                tripId: tripId,
               );
             },
           );
@@ -455,10 +456,12 @@ class _SettlementView extends StatelessWidget {
   const _SettlementView({
     required this.settlement,
     required this.members,
+    required this.tripId,
   });
 
   final TripSettlement settlement;
   final List<Member> members;
+  final String tripId;
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +476,8 @@ class _SettlementView extends StatelessWidget {
           _TransfersCard(
             transfers: settlement.transfers,
             members: members,
-            tripId: members.first.tripId,
+            // [PR-4 修复 S-7] 空成员列表守卫 - 避免 members.first.tripId 在空列表上崩溃
+            tripId: members.isNotEmpty ? members.first.tripId : tripId,
           ),
         const SizedBox(height: 24),
       ],

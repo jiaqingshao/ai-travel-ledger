@@ -187,7 +187,7 @@ class _SupabaseSettingsScreenState extends ConsumerState<SupabaseSettingsScreen>
 
   void _pasteExample() {
     setState(() {
-      _urlCtrl.text = 'https://zvqnawllsdmisntkxdwp.supabase.co';
+      _urlCtrl.text = 'https://YOUR-PROJECT.supabase.co';
       _keyCtrl.text = '<粘贴你的 anon key>';
     });
   }
@@ -412,7 +412,7 @@ class _HelpCard extends StatelessWidget {
                 '5. 连接失败会自动回退本地模式, 不影响使用',
                 style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 12),
-            const Text('联系开发者获取帮助: litiboy@163.com',
+            const Text('联系开发者获取帮助: https://github.com/jiaqingshao/ai-travel-ledger/issues',
                 style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),

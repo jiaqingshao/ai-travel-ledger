@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -40,6 +42,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _init();
   }
 
+  // [PR-3 修复 S-10] 保存 subscription 以便 dispose 时取消, 避免内存泄漏
+  // [supabase_flutter 的 authStateChanges 返回 Stream<dynamic>, 用 var 避免类型问题]
+  StreamSubscription<dynamic>? _authSubscription;
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+
   void _init() {
     if (!SupabaseService.instance.isInitialized) {
       return;
@@ -52,8 +64,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         userId: user.id,
       );
     }
-    // 订阅 auth 变化
-    SupabaseService.instance.authStateChanges.listen((authState) {
+    // 订阅 auth 变化 - 保存 subscription 用于 dispose 取消
+    _authSubscription = SupabaseService.instance.authStateChanges.listen((authState) {
       final event = authState.event;
       if (event == AuthChangeEvent.signedIn) {
         final user = authState.session?.user;

@@ -17,8 +17,9 @@ class AboutScreen extends StatelessWidget {
   // - 本地版默认 1.2.0+0
   // - 云端版可通过 --dart-define=APP_VERSION_NAME=vX.Y.Z 覆盖
   static const String _version = SupabaseConfig.appVersionName;
-  static const String _authorEmail = 'litiboy@163.com';
-  static const String _githubUrl = 'https://github.com/jiaqingshao/ai-travel-ledger';
+  // [PR-1 脱敏] 作者邮箱不再硬编码 - 请通过 GitHub Issues 联系
+  static const String _authorEmail = ''; // deprecated: 留空防编译错误, UI 已切换到 GitHub Issues
+  static const String _githubUrl = 'https://github.com/jiaqingshao/ai-travel-ledger/issues';
   static const String _releaseDate = '2026-07-13';
   static const String _description = '自驾游/团队游场景的智能记账与分摊工具。让多人 AA 结算从 30 分钟缩短到 30 秒。';
 
@@ -128,15 +129,8 @@ class AboutScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _ContactTile(
-                    icon: Icons.alternate_email,
-                    label: '作者邮箱',
-                    value: _authorEmail,
-                    onTap: () => _copyToClipboard(context, _authorEmail),
-                  ),
-                  const Divider(height: 1),
-                  _ContactTile(
                     icon: Icons.code,
-                    label: '开源仓库',
+                    label: '联系作者',
                     value: _githubUrl,
                     onTap: () => _copyToClipboard(context, _githubUrl),
                   ),

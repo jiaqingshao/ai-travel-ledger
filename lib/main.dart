@@ -12,7 +12,9 @@ import 'data/models/transfer_record.dart';
 import 'data/models/trip.dart';
 import 'data/repositories/app_settings_repository.dart';
 import 'data/seed_data.dart';
+import 'data/sync/sync_engine.dart';
 import 'presentation/providers/core_providers.dart';
+import 'presentation/providers/sync_providers.dart';
 import 'presentation/screens/group_settlement_screen.dart';
 import 'presentation/screens/settlement_screen.dart';
 import 'presentation/screens/trip_detail_screen.dart';
@@ -95,10 +97,25 @@ Future<void> main() async {
     attachments: attachmentsBox,
   );
 
+  // [PR-3 修复 S-5 / S-9] 启动 sync engine
+  // 仅在云模式且 Supabase 初始化成功时才启动 (本地模式启动无意义)
+  // 设计意图: 让 _pushExpense / _pullChanges 真正跑起来, 不再是死代码
+  SyncEngine? syncEngine;
+  if (SupabaseService.instance.isInitialized &&
+      settings.isCloudMode &&
+      SupabaseService.instance.currentUserId != null) {
+    syncEngine = SyncEngine(boxes: boxes);
+    syncEngine.startAutoSync();
+    debugPrint('✅ [Sync] 已启动, userId=${SupabaseService.instance.currentUserId}');
+  } else {
+    debugPrint('ℹ️ [Sync] 未启动 (本地模式或未登录)');
+  }
+
   runApp(
     ProviderScope(
       overrides: [
         hiveBoxesProvider.overrideWithValue(boxes),
+        if (syncEngine != null) syncEngineProvider.overrideWithValue(syncEngine),
       ],
       child: AITravelLedgerApp(boxes: boxes),
     ),

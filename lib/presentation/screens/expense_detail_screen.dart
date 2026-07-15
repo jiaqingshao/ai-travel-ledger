@@ -462,10 +462,9 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   }
 
   // V1.1: 附件管理 - URL 输入模式已废弃 (ISSUE-026 step 2 改为拍照/选图)
-// 保留 _addAttachment stub 以避免残留引用报错
-  Future<void> _addAttachment() async {
-    // 旧逻辑: 输入 URL 添加附件。已被 AttachmentPickerSection 取代。
-  }
+// [PR-5 修复 V2-1] 删除 _addAttachment stub 函数
+// 原因: 实际代码里没人调用, 留着会让维护者误以为是"还在用的旧代码"
+// 替代方案: 使用 AttachmentPickerSection widget (lib/presentation/widgets/attachment_picker_section.dart)
 
   // ISSUE-024: 付款人选择弹窗
   Future<void> _showPayerPicker(List<Member> members) async {
