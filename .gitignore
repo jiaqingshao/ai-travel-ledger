@@ -90,3 +90,9 @@ coverage/
 # Misc
 *.bak
 *.tmp
+
+# Security credentials (V2 keystore + 凭据备份)
+keystore-backup/
+docs/03-management/security/*
+!docs/03-management/security/README.md
+
