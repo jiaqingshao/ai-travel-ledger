@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/attachment.dart';
@@ -187,10 +188,21 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
         if (_amountInput.isEmpty) _amountInput = '0';
         _amountInput += '.';
       } else {
-        // 限 2 位小数
+        // [PR-X2 修复 S-22] 限 2 位小数 - 弹震动 + Snackbar 提示
         if (_amountInput.contains('.')) {
           final dotIdx = _amountInput.indexOf('.');
-          if (_amountInput.length - dotIdx > 2) return;
+          if (_amountInput.length - dotIdx > 2) {
+            HapticFeedback.lightImpact();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('已到 2 位小数'),
+                  duration: Duration(milliseconds: 500),
+                ),
+              );
+            }
+            return;
+          }
         }
         // 防 0 开头
         if (_amountInput == '0') {
@@ -217,7 +229,18 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
   /// 用于连续记录多笔相似费用 (如部门聚餐每人点菜)
   Future<void> _submitAndContinue() async {
     final ok = await _submit();
-    if (!ok || !mounted) return;
+    if (!mounted) return;
+    // [PR-X2 修复 S-21] 失败弹 Snackbar 提示用户
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ 保存失败，请重试'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
     // 重置表单状态 (保留 _payer 和 _category)
     setState(() {
       _amountInput = '';
