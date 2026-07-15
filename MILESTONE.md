@@ -89,12 +89,14 @@
 
 ## 🆕 下一个里程碑候选
 
-> ⚠️ **v1.3-team 暂缓**（详见 [ADR-005](docs/02-architecture/04-adr/ADR-005-android-cn-only.md)），改为 `v1.3-cn-stores`
+> ⚠️ **v1.3-team 暂缓**（详见 [ADR-005](docs/02-architecture/04-adr/ADR-005-android-cn-only.md) + [ADR-007](docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md)），改为 `v1.3-tcb-cn-stores`
 
-- **`v1.3-cn-stores`** ⭐ 推荐 — **国内 Android 上架**（华为/小米/OPPO/vivo/应用宝/360 等，ISSUE-034）
-  - 前置: R011 软著 + R012 ICP 备案 评估
-  - V1.3 起点试水: 1-2 个主流商店（如小米 + OPPO）
+- **`v1.3-tcb-cn-stores`** ⭐ 推荐 — **国内 Android 上架 + TCB 后端迁移**（ISSUE-034 + ISSUE-036）
+  - 前置: R011 软著 + 创始人注册 TCB + 实名 (Step 1-5, 见 [tcb-setup-guide.md](docs/03-management/tcb-setup-guide.md))
+  - 后端: Supabase → 腾讯云 CloudBase (PG + 云存储 + 云函数)
+  - 起点试水: 1-2 个主流商店（如小米 + OPPO）
   - 配套: 隐私政策 + 用户协议 + 应用截图 + 各商店 IAP 接入
+  - 预计: 5-7 周全流程
 - `v2.0-enterprise` — 企业版（部门/项目/审批流）
 - `v2.0-ai` — AI 智能识别小票（OCR 自动记账，海外 iOS + Google Play 时启用）
 

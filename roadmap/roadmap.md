@@ -1,10 +1,11 @@
 # AI 旅行账本 Roadmap
 
-**最后更新**: 2026-07-15（v0.3.2 修订）
+**最后更新**: 2026-07-15（v0.3.3 修订）
 **基于**: wbs-planner v2.0
 **v0.3 更新**: 新增 E-008/009/010 三个 MVP P0 功能（语音记账 / 重复费用 / 旅程统计图表）— **2026-06-28**
 **v0.3.1 修订**: E-008/009/010 暂缓至 V1.1 候选，详见 [ADR-004](../docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md) — **2026-07-15**
 **v0.3.2 修订**: 发布路线改为**国内 Android only** + 商业模式调整，详见 [ADR-005](../docs/02-architecture/04-adr/ADR-005-android-cn-only.md) — **2026-07-15**
+**v0.3.3 修订**: 后端切到**腾讯云开发 CloudBase (TCB)** + R012 决策，详见 [ADR-007](../docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md) — **2026-07-15**
 
 ---
 
@@ -157,5 +158,26 @@ E-010 旅程统计 ←─ 依赖 E-002 + E-005 附件 metadata
 
 ---
 
+## v0.3.3 决策摘要（2026-07-15）
+
+**后端迁移**：**Supabase 海外 → 腾讯云开发 CloudBase (TCB)**
+
+**原因**:
+- R012 ICP 备案合规要求，国内云服务商 + 免费额度
+- 腾讯云为 TCB 子域名代办 ICP 备案
+
+**成本**:
+- ¥0 月费（个人开发者实名）
+- 数据库 2 GB / 存储 5 GB / 云函数 4 万 GBs/月（够 V1.3-V2.0）
+
+**工期**:
+- 5-7 周全流程（含软著 + TCB 迁移 + 上架）
+
+**决策** + **申请流程**: [ADR-007](../docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md) + [tcb-setup-guide.md](../docs/03-management/tcb-setup-guide.md)
+
+**新增风险**: R014 TCB 迁移风险（监控中）
+
+---
+
 *Roadmap 是动态文档，每个 Epic 状态变化需同步：epic.md + issue-tracker.md + CHANGELOG.md*
-*下次评审: V1.3 启动前（计划 2026-08 中下旬，需先决 R011 软著 + R012 ICP）*
+*下次评审: 创始人提供 TCB 密钥后 (1-2 天内启动迁移)*

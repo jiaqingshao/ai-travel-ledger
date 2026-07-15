@@ -10,6 +10,11 @@
   - ❌ iOS 适配 暂缓（需 Apple Developer $99/年 + ios/ 从未启用）
   - ❌ Google Play 上架 暂缓（国内无法使用）
   - ✅ 改为 ISSUE-034 国内 Android 上架（华为/小米/OPPO/vivo/应用宝 等）
+- **ADR-007**: R012 解决方案选型 → **腾讯云开发 CloudBase (TCB)**（2026-07-15）。详见 [`docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md`](docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md)
+  - 国内合规 + ¥0 月费（数据库 2 GB / 存储 5 GB 免费层）
+  - 个人开发者实名即可（不需企业认证）
+  - 5-7 周迁移（Supabase → TCB）
+  - 申请流程: [`docs/03-management/tcb-setup-guide.md`](docs/03-management/tcb-setup-guide.md)
 
 ### Planned (V1.3 候选)
 - **国内 Android 上架（V1.3 主线）— [ISSUE-034]**
