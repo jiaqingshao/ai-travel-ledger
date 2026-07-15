@@ -66,24 +66,29 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     super.dispose();
   }
 
+  // [PR-X3 加固 S-12] 用 addPostFrameCallback 避免在 build/回调中同步 mutate state
+  // 当前调用点 (line 115, 148) 不在 build 里, 但未来重构时加一道防线
   void _initFromExpense(Expense e) {
-    _amountCtrl.text = e.amount.toStringAsFixed(2);
-    _descCtrl.text = e.description ?? '';
-    _category = e.category;
-    _editingPayerId = e.payerId;
-    _editingOccurredAt = e.occurredAt;
-    _editingSplitRuleJson = e.splitRuleJson;
-    // ISSUE-026 step 2: 从 URL 列表重建 Attachment（仅用于预览, 元数据无)
-    _editingAttachments = e.attachments
-        .where((u) => u.isNotEmpty)
-        .map((u) => Attachment(
-              url: u,
-              fileName: _fileNameFromUrl(u),
-              sizeBytes: 0,
-              mimeType: _mimeFromUrl(u),
-              uploadedAt: '',
-            ))
-        .toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _amountCtrl.text = e.amount.toStringAsFixed(2);
+      _descCtrl.text = e.description ?? '';
+      _category = e.category;
+      _editingPayerId = e.payerId;
+      _editingOccurredAt = e.occurredAt;
+      _editingSplitRuleJson = e.splitRuleJson;
+      // ISSUE-026 step 2: 从 URL 列表重建 Attachment（仅用于预览, 元数据无)
+      _editingAttachments = e.attachments
+          .where((u) => u.isNotEmpty)
+          .map((u) => Attachment(
+                url: u,
+                fileName: _fileNameFromUrl(u),
+                sizeBytes: 0,
+                mimeType: _mimeFromUrl(u),
+                uploadedAt: '',
+              ))
+          .toList();
+    });
   }
 
   static String _fileNameFromUrl(String url) {

@@ -87,9 +87,13 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
           if (members.isEmpty) {
             return _NoMemberView(tripId: widget.tripId);
           }
-          // 首次进入时设置默认付款人
+          // [PR-X3 修复 S-11] 首次进入时设置默认付款人 - 用 addPostFrameCallback 避免 build 内 mutate state
           if (_payer == null) {
-            _initDefaultPayer(members);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _payer == null) {
+                setState(() => _initDefaultPayer(members));
+              }
+            });
           }
           return Column(
             children: [
