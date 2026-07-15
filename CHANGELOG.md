@@ -10,20 +10,20 @@
   - ❌ iOS 适配 暂缓（需 Apple Developer $99/年 + ios/ 从未启用）
   - ❌ Google Play 上架 暂缓（国内无法使用）
   - ✅ 改为 ISSUE-034 国内 Android 上架（华为/小米/OPPO/vivo/应用宝 等）
-- **ADR-007**: R012 解决方案选型 → **腾讯云开发 CloudBase (TCB)**（2026-07-15）。详见 [`docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md`](docs/02-architecture/04-adr/ADR-007-r012-tcb-migration.md)
-  - 国内合规 + ¥0 月费（数据库 2 GB / 存储 5 GB 免费层）
-  - 个人开发者实名即可（不需企业认证）
-  - 5-7 周迁移（Supabase → TCB）
-  - 申请流程: [`docs/03-management/tcb-setup-guide.md`](docs/03-management/tcb-setup-guide.md)
+- **ADR-008** (取代 ADR-007): Phase 1 纯本地模式 + 云功能 V2.0 启用（2026-07-15 13:50）。详见 [`docs/02-architecture/04-adr/ADR-008-phase1-local-only-cloud-deferred.md`](docs/02-architecture/04-adr/ADR-008-phase1-local-only-cloud-deferred.md)
+  - ✅ 创始人复查 TCB 个人版 = ¥19.9/月（**不是免费**），ADR-007 撤销
+  - ✅ V1.3 Phase 1 = 纯本地（默认 Hive, 无云依赖）
+  - ✅ 云代码 / UI / 设置菜单 **完整保留**（未来 V2.0 重启成本极低）
+  - ✅ 符合"国内合规 + ¥0 永久"约束
+  - 🔄 V2.0 时重新评估云提供商
 
 ### Planned (V1.3 候选)
-- **国内 Android 上架（V1.3 主线）— [ISSUE-034]**
-- 实时多人协作 UI
+- **国内 Android 上架 (V1.3 Phase 1 = 纯本地版) — [ISSUE-034]**
 - ISSUE-026 step 5: 下载所有附件为 ZIP（可选）
-- Sentry 崩溃监控接入
-- 多设备同步 UX 改进
+- Sentry 崩溃监控接入（可选）
+- 多设备 UX（V1.3 限制：只本地多设备间导入导出）
 
-> **v1.3 候选变更**：Google Play 上架 (ISSUE-025) 暂缓，替换为 ISSUE-034 国内 Android 上架。iOS 整体暂缓。
+> **v1.3 候选变更**：撤销 ADR-007 TCB 迁移 (ISSUE-036)，V1.3 Phase 1 纯本地。云功能 V2.0 启用时再评估 (ISSUE-037)。
 
 > **v0.3 P0 暂缓说明**: V1.2 cloud-milestone (2026-07-14) 实际交付 P0 = **5 个** (E-001 ~ E-005，其中 E-005 仅子集)。E-008/009/010 不在 V1.3 计划内，**V1.1 重新评估时再决定是否启用**。
 
