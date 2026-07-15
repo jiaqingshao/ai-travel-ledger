@@ -3,6 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ai_service.dart';
 
+/// [PR-Y2 修复 S-20] AI 模型 URL 允许通过 dart-define 覆盖
+///
+/// 编译时注入示例:
+/// flutter build apk --dart-define=LOCAL_QWEN36_BASE_URL=http://10.0.0.5:8033/v1
+/// flutter build apk --dart-define=CLOUD_M3_BASE_URL=https://api.example.com/v1
+///
+/// 默认值保留 (避免破坏开发调试), 隐私敏感场景下推荐用 dart-define 注入。
+const String kDefaultLocalQwen36BaseUrl = 'http://192.168.1.60:8033/v1';
+const String kDefaultCloudM3BaseUrl = 'https://api.MiniMax.com/v1';
+const String kDefaultCloudDeepSeekBaseUrl = 'https://api.deepseek.com/v1';
+const String kDefaultCloudGlm4BaseUrl = 'https://open.bigmodel.cn/api/paas/v4';
+const String kDefaultCloudQianwenBaseUrl =
+    'https://dashscope.aliyuncs.com/compatible-mode/v1';
+
 /// AI 模型类型枚举
 enum AIModelType {
   cloudM3,        // 🆕 主力：MiniMax M3（云端）
@@ -42,7 +56,10 @@ class AIModelConfig {
   static const AIModelConfig cloudM3 = AIModelConfig(
     type: AIModelType.cloudM3,
     name: 'MiniMax M3',
-    baseUrl: 'https://api.MiniMax.com/v1',
+    baseUrl: String.fromEnvironment(
+      'CLOUD_M3_BASE_URL',
+      defaultValue: kDefaultCloudM3BaseUrl,
+    ),
     apiKey: 'REPLACE_WITH_YOUR_M3_KEY',  // TODO: 填入你的 M3 API Key
     modelName: 'MiniMax-M3',
     isLocal: false,
@@ -56,7 +73,10 @@ class AIModelConfig {
   static const AIModelConfig localQwen36 = AIModelConfig(
     type: AIModelType.localQwen36,
     name: '本地 Qwen3.6 35B',
-    baseUrl: 'http://192.168.1.60:8033/v1',
+    baseUrl: String.fromEnvironment(
+      'LOCAL_QWEN36_BASE_URL',
+      defaultValue: kDefaultLocalQwen36BaseUrl,
+    ),
     apiKey: 'lm-studio',  // LM Studio 不校验 key
     modelName: 'qwen3.6-35b-a3b-apex-balanced',
     isLocal: true,
@@ -69,7 +89,10 @@ class AIModelConfig {
   static const AIModelConfig cloudDeepSeek = AIModelConfig(
     type: AIModelType.cloudDeepSeek,
     name: '云端 DeepSeek',
-    baseUrl: 'https://api.deepseek.com/v1',
+    baseUrl: String.fromEnvironment(
+      'CLOUD_DEEPSEEK_BASE_URL',
+      defaultValue: kDefaultCloudDeepSeekBaseUrl,
+    ),
     apiKey: 'REPLACE_WITH_YOUR_DEEPSEEK_KEY',
     modelName: 'deepseek-chat',
     isLocal: false,
@@ -82,7 +105,10 @@ class AIModelConfig {
   static const AIModelConfig cloudGlm4 = AIModelConfig(
     type: AIModelType.cloudGlm4,
     name: '云端 智谱 GLM-4',
-    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    baseUrl: String.fromEnvironment(
+      'CLOUD_GLM4_BASE_URL',
+      defaultValue: kDefaultCloudGlm4BaseUrl,
+    ),
     apiKey: 'REPLACE_WITH_YOUR_GLM4_KEY',
     modelName: 'glm-4-plus',
     isLocal: false,
@@ -95,7 +121,10 @@ class AIModelConfig {
   static const AIModelConfig cloudQianwen = AIModelConfig(
     type: AIModelType.cloudQianwen,
     name: '云端 通义千问',
-    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    baseUrl: String.fromEnvironment(
+      'CLOUD_QIANWEN_BASE_URL',
+      defaultValue: kDefaultCloudQianwenBaseUrl,
+    ),
     apiKey: 'REPLACE_WITH_YOUR_QIANWEN_KEY',
     modelName: 'qwen-max',
     isLocal: false,
