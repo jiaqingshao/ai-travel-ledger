@@ -172,7 +172,7 @@ dependencies:
 | 维度 | 选型 | 决策日期 |
 |---|---|---|
 | 移动端 | Flutter | 2026-06-14 |
-| 后端 | Supabase | 2026-06-14 |
+| 后端 | Supabase (ADR-008 Phase 1 暂不使用) | 2026-06-14 |
 | IDE | Trae 主 + Cursor 备 | 2026-06-14 |
 | AI 模型 | 本地 Qwen3.6 + 云端 API | 2026-06-14 |
 | 状态管理 | Riverpod | 2026-06-14 |
@@ -180,3 +180,25 @@ dependencies:
 | 本地存储 | Hive + SQLite | 2026-06-14 |
 
 > 详见 `docs/02-architecture/04-adr/` 下的 ADR 文档，每个选型有详细理由。
+
+---
+
+## ⚠️ Known Workarounds (锁定包版本与兼容性)
+
+### `app_links: 6.3.1` dependency override (`pubspec.yaml`)
+
+**问题**: `app_links 6.4.1` 升级后，插件原生层（Android）的 `build.gradle` 引用了 `flutter` 属性。但当前 Flutter 3.x 移除了该属性，导致 `flutter pub get` 失败。
+
+**解决**: 在 `pubspec.yaml` 加 dependency override：
+```yaml
+dependency_overrides:
+  app_links: 6.3.1  # 兼容 Dart 3.3.0+, Flutter 3.19+, 对应当前 Flutter 3.24.5 完美
+```
+
+**升级路径**:
+- `app_links 6.3.x` 兼容 Dart 3.3.0+, Flutter 3.19+
+- `app_links 7.x` 需要 Dart 3.12+ （需等 Flutter 升级到 3.27+ 后才能用 7.x）
+
+**Last verified**: 2026-07-15
+**Tracking**: pubspec.yaml:82-87
+**何时可移除**: 当 Flutter 升级到 3.27+ 且确认 `app_links 7.x` 兼容时
