@@ -55,7 +55,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   cached_network_image: ^3.3.1
   flutter_svg: ^2.0.9
-  fl_chart: ^0.66.2  # 图表
+  fl_chart: ^0.66.2  # 图表（E-010 旅程统计 V1.1 候选保留，不删除避免破坏 lock；详见 ADR-004）
   qr_flutter: ^4.1.0  # 二维码（邀请用）
 
   # ============================================

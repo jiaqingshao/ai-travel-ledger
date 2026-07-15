@@ -4,11 +4,18 @@
 
 ## [Unreleased]
 
-### Planned
-- 票据照片上传（Supabase Storage） — **ISSUE-026 / V1.2**
-- iOS 适配
+### 📋 Decisions (决策记录)
+- **ADR-004**: PRD v0.3 三个 P0 功能（E-008 语音记账 / E-009 重复费用 / E-010 旅程统计）**暂缓至 V1.1 候选**（2026-07-15）。详见 [`docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md`](docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md)
+
+### Planned (V1.3 候选)
 - 实时多人协作 UI
 - Google Play 上架 — **ISSUE-025**
+- iOS 适配
+- ISSUE-026 step 5: 下载所有附件为 ZIP（可选）
+- Sentry 崩溃监控接入
+- 多设备同步 UX 改进
+
+> **v0.3 P0 暂缓说明**: V1.2 cloud-milestone (2026-07-14) 实际交付 P0 = **5 个** (E-001 ~ E-005，其中 E-005 仅子集)。E-008/009/010 不在 V1.3 计划内，**V1.1 重新评估时再决定是否启用**。
 
 ---
 
