@@ -29,28 +29,30 @@ class GroupSettlementScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('按组结算'),
       ),
-      body: settlementAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (settlement) {
-          return membersAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('加载成员失败：$e')),
-            data: (members) {
-              return groupsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('加载分组失败：$e')),
-                data: (groups) => _GroupSettlementView(
-                  settlement: settlement,
-                  members: members,
-                  groups: groups,
-                  groupTransfers: groupTransfersAsync,
-                ),
-              );
-            },
-          );
-        },
-      ),
+      body: Builder(builder: (context) {
+        // [PR-X4 修复 M-1] 3 层 when 重构为扁平化 + 短路逻辑
+        // 任一 loading/error 独立处理,行为保持一致
+        if (settlementAsync.isLoading ||
+            membersAsync.isLoading ||
+            groupsAsync.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (settlementAsync.hasError) {
+          return Center(child: Text('加载失败：${settlementAsync.error}'));
+        }
+        if (membersAsync.hasError) {
+          return Center(child: Text('加载成员失败：${membersAsync.error}'));
+        }
+        if (groupsAsync.hasError) {
+          return Center(child: Text('加载分组失败：${groupsAsync.error}'));
+        }
+        return _GroupSettlementView(
+          settlement: settlementAsync.requireValue,
+          members: membersAsync.requireValue,
+          groups: groupsAsync.requireValue,
+          groupTransfers: groupTransfersAsync,
+        );
+      }),
     );
   }
 }

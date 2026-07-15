@@ -61,6 +61,9 @@ final transferRecordsByTripProvider = StreamProvider.autoDispose
 // ========================================================================
 
 /// 完整结算视图（个人粒度 + 按组聚合 + 已结算记录合并）
+// [PR-X4 修复 S-24] 4 层 when 重构为扁平化 + 短路逻辑
+// 行为保持一致:任一 loading/error 立即返回,错误信息保留
+// records 部分:失败 fallback 到空 list(不阻塞主计算,原逻辑保留)
 final settlementProvider =
     Provider.autoDispose.family<AsyncValue<TripSettlement>, String>((ref, tripId) {
   final expensesAsync = ref.watch(expensesByTripProvider(tripId));
@@ -68,64 +71,70 @@ final settlementProvider =
   final groupsAsync = ref.watch(groupsByTripProvider(tripId));
   final recordsAsync = ref.watch(transferRecordsByTripProvider(tripId));
 
-  return expensesAsync.when(
-    loading: () => const AsyncValue.loading(),
-    error: (e, st) => AsyncValue.error(e, st),
-    data: (expenses) {
-      return membersAsync.when(
-        loading: () => const AsyncValue.loading(),
-        error: (e, st) => AsyncValue.error(e, st),
-        data: (members) {
-          return groupsAsync.when(
-            loading: () => const AsyncValue.loading(),
-            error: (e, st) => AsyncValue.error(e, st),
-            data: (groups) {
-              // Step 1: 原始净额
-              final rawBalances =
-                  SettlementEngine.calculateNetBalancesFromExpenses(
-                expenses: expenses,
-                members: members,
-                groups: groups,
-              );
+  // 短路:任一 loading 立即返回
+  if (expensesAsync.isLoading ||
+      membersAsync.isLoading ||
+      groupsAsync.isLoading ||
+      recordsAsync.isLoading) {
+    return const AsyncValue.loading();
+  }
 
-              // Step 2: 应用已结算记录
-              final records = recordsAsync.maybeWhen(
-                data: (r) => r,
-                orElse: () => const <TransferRecord>[],
-              );
-              final adjustedBalances =
-                  adjustBalancesForRecords(rawBalances, records);
+  // 短路:核心 3 个失败立即返回错误(records 失败不阻塞,见下)
+  if (expensesAsync.hasError) {
+    return AsyncValue.error(
+        expensesAsync.error!, expensesAsync.stackTrace ?? StackTrace.empty);
+  }
+  if (membersAsync.hasError) {
+    return AsyncValue.error(
+        membersAsync.error!, membersAsync.stackTrace ?? StackTrace.empty);
+  }
+  if (groupsAsync.hasError) {
+    return AsyncValue.error(
+        groupsAsync.error!, groupsAsync.stackTrace ?? StackTrace.empty);
+  }
 
-              // Step 3: 最优转账（基于调整后）
-              final transfers =
-                  SettlementEngine.minimizeTransfers(adjustedBalances);
+  final expenses = expensesAsync.requireValue;
+  final members = membersAsync.requireValue;
+  final groups = groupsAsync.requireValue;
+  // records 失败/缺失 fallback 到空 list(保持原逻辑:settlement 不被 records 错误阻塞)
+  final records = recordsAsync.maybeWhen(
+    data: (r) => r,
+    orElse: () => const <TransferRecord>[],
+  );
 
-              // Step 4: 按组聚合（基于调整后）
-              final groupSettlements = SettlementEngine.byGroup(
-                members: members,
-                groups: groups,
-                balances: adjustedBalances,
-              );
+  // Step 1: 原始净额
+  final rawBalances = SettlementEngine.calculateNetBalancesFromExpenses(
+    expenses: expenses,
+    members: members,
+    groups: groups,
+  );
 
-              // Step 5: 总金额
-              final total = expenses
-                  .where((e) => e.deletedAt == null)
-                  .fold<double>(0, (a, e) => a + e.amount);
+  // Step 2: 应用已结算记录
+  final adjustedBalances = adjustBalancesForRecords(rawBalances, records);
 
-              return AsyncValue.data(
-                TripSettlement(
-                  balances: adjustedBalances,
-                  transfers: transfers,
-                  groups: groupSettlements,
-                  totalAmount: SettlementEngine.round2(total),
-                  memberCount: members.length,
-                ),
-              );
-            },
-          );
-        },
-      );
-    },
+  // Step 3: 最优转账（基于调整后）
+  final transfers = SettlementEngine.minimizeTransfers(adjustedBalances);
+
+  // Step 4: 按组聚合（基于调整后）
+  final groupSettlements = SettlementEngine.byGroup(
+    members: members,
+    groups: groups,
+    balances: adjustedBalances,
+  );
+
+  // Step 5: 总金额
+  final total = expenses
+      .where((e) => e.deletedAt == null)
+      .fold<double>(0, (a, e) => a + e.amount);
+
+  return AsyncValue.data(
+    TripSettlement(
+      balances: adjustedBalances,
+      transfers: transfers,
+      groups: groupSettlements,
+      totalAmount: SettlementEngine.round2(total),
+      memberCount: members.length,
+    ),
   );
 });
 
