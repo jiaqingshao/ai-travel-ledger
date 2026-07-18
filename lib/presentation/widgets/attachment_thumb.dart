@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/models/attachment.dart';
+import '../../data/repositories/attachment_repository.dart';
 
 class AttachmentThumb extends StatelessWidget {
   const AttachmentThumb({
@@ -38,7 +39,28 @@ class AttachmentThumb extends StatelessWidget {
     final radius = BorderRadius.circular(8);
 
     Widget image;
-    if (attachment.url.isNotEmpty) {
+    if (AttachmentRepository.isLocalUrl(attachment.url)) {
+      // ISSUE-039: 本地沙盒文件 → Image.file
+      final localPath = AttachmentRepository.localPathFromUrl(attachment.url);
+      if (localPath != null && File(localPath).existsSync()) {
+        image = Image.file(
+          File(localPath),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: Theme.of(context).colorScheme.errorContainer,
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image, size: 28),
+          ),
+        );
+      } else {
+        // 沙盒文件被外部删除 (清理缓存等)
+        image = Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          alignment: Alignment.center,
+          child: const Icon(Icons.image_not_supported, size: 28),
+        );
+      }
+    } else if (attachment.url.isNotEmpty) {
       // 已上传 → 网络图
       image = CachedNetworkImage(
         imageUrl: attachment.url,
@@ -92,7 +114,8 @@ class AttachmentThumb extends StatelessWidget {
               borderRadius: radius,
               child: GestureDetector(
                 onTap: onTap,
-                onLongPress: onDelete == null ? null : () => _confirmDelete(context),
+                onLongPress:
+                    onDelete == null ? null : () => _confirmDelete(context),
                 child: image,
               ),
             ),
@@ -126,8 +149,8 @@ class AttachmentThumb extends StatelessWidget {
                   bottomRight: Radius.circular(8),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 4, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   color: Colors.black54,
                   child: Text(
                     attachment.fileName,

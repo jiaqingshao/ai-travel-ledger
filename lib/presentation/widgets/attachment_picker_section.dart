@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/attachment.dart';
+import '../../data/repositories/attachment_repository.dart';
 import '../providers/core_providers.dart';
 import 'attachment_thumb.dart';
 import 'attachment_viewer.dart';
@@ -63,14 +64,6 @@ class _AttachmentPickerSectionState
       return;
     }
 
-    // 本地模式提示
-    final settingsAsync = ref.read(appSettingsProvider);
-    final settings = settingsAsync.asData?.value;
-    if (settings == null || !settings.isCloudMode) {
-      _snack('附件功能需要云同步，请先在「云端设置」中启用');
-      return;
-    }
-
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -101,7 +94,7 @@ class _AttachmentPickerSectionState
 
     final XFile? file = await _picker.pickImage(
       source: source,
-      imageQuality: 80, // 压缩到 80% 节省 Storage 空间
+      imageQuality: 80, // 压缩到 80% 节省空间
       maxWidth: 1920,
       maxHeight: 1920,
     );
@@ -132,11 +125,15 @@ class _AttachmentPickerSectionState
     widget.onChanged(widget.attachments);
 
     try {
+      // ISSUE-039 修复: 根据当前模式选择云/本地保存路径
+      final settings = ref.read(appSettingsProvider).asData?.value;
+      final useCloud = settings?.isCloudMode ?? false;
       final repo = ref.read(attachmentRepositoryProvider);
       final uploaded = await repo.upload(
         localPath: localPath,
         tripId: widget.tripId,
         expenseId: widget.expenseId,
+        useCloud: useCloud,
       );
 
       // 替换 pending 为已上传
@@ -156,11 +153,19 @@ class _AttachmentPickerSectionState
         _uploadingLocalPaths.remove(localPath);
       });
       widget.onChanged(widget.attachments);
-      if (mounted) _snack('上传失败：$e');
+      if (mounted) _snack('附件保存失败：$e');
     }
   }
 
   void _remove(Attachment a) {
+    // ISSUE-039 修复: 删除时同时删沙盒文件 (仅本地模式)
+    if (AttachmentRepository.isLocalUrl(a.url)) {
+      final localPath = AttachmentRepository.localPathFromUrl(a.url);
+      if (localPath != null) {
+        // 不 await (UI 立刻更新, 删文件 fire-and-forget)
+        File(localPath).delete().catchError((_) => File(localPath));
+      }
+    }
     setState(() {
       widget.attachments.remove(a);
       if (a.localPath != null) _uploadingLocalPaths.remove(a.localPath);
@@ -169,12 +174,12 @@ class _AttachmentPickerSectionState
   }
 
   void _openViewer(int initialIndex) {
+    // ISSUE-039 修复: 包含本地沙盒附件 (url 以 file:// 开头也算"已上传")
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AttachmentViewer(
-          attachments: widget.attachments
-              .where((a) => a.url.isNotEmpty)
-              .toList(),
+          attachments:
+              widget.attachments.where((a) => a.url.isNotEmpty).toList(),
           initialIndex: initialIndex,
         ),
       ),
@@ -199,7 +204,8 @@ class _AttachmentPickerSectionState
 
   @override
   Widget build(BuildContext context) {
-    final isCloudMode = ref.watch(appSettingsProvider).asData?.value.isCloudMode ?? false;
+    final isCloudMode =
+        ref.watch(appSettingsProvider).asData?.value.isCloudMode ?? false;
     final canAdd = widget.attachments.length < widget.maxCount;
 
     return Card(
@@ -234,7 +240,8 @@ class _AttachmentPickerSectionState
                 child: Text(
                   isCloudMode
                       ? '点击「添加」可拍照或从相册选择（最多 ${widget.maxCount} 张）'
-                      : '附件功能需要云同步，请先在「云端设置」中启用',
+                      // ISSUE-039: 本地模式可用, 仅提示数据生命周期
+                      : '点击「添加」可拍照或从相册选择（本地保存，卸载 APP 后会丢失）',
                   style: const TextStyle(color: Colors.grey),
                 ),
               )
@@ -247,7 +254,8 @@ class _AttachmentPickerSectionState
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, idx) {
                     final a = widget.attachments[idx];
-                    final isUploading = _uploadingLocalPaths.contains(a.localPath);
+                    final isUploading =
+                        _uploadingLocalPaths.contains(a.localPath);
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: AttachmentThumb(

@@ -6,10 +6,13 @@
 /// - 双击缩放（InteractiveViewer 内置支持）
 library;
 
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/models/attachment.dart';
+import '../../data/repositories/attachment_repository.dart';
 
 class AttachmentViewer extends StatefulWidget {
   const AttachmentViewer({
@@ -67,30 +70,57 @@ class _AttachmentViewerState extends State<AttachmentViewer> {
               minScale: 0.8,
               maxScale: 4.0,
               child: Center(
-                child: a.url.isEmpty
-                    ? const Icon(
-                        Icons.broken_image,
-                        color: Colors.white54,
-                        size: 64,
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: a.url,
-                        fit: BoxFit.contain,
-                        placeholder: (_, __) => const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        ),
-                        errorWidget: (_, __, ___) => const Icon(
-                          Icons.broken_image,
-                          color: Colors.white54,
-                          size: 64,
-                        ),
-                      ),
+                child: _buildImage(a),
               ),
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// ISSUE-039: 支持本地沙盒附件 (file:// 路径)
+  Widget _buildImage(Attachment a) {
+    // 本地沙盒
+    if (AttachmentRepository.isLocalUrl(a.url)) {
+      final localPath = AttachmentRepository.localPathFromUrl(a.url);
+      if (localPath != null && File(localPath).existsSync()) {
+        return Image.file(
+          File(localPath),
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.broken_image,
+            color: Colors.white54,
+            size: 64,
+          ),
+        );
+      }
+      return const Icon(
+        Icons.broken_image,
+        color: Colors.white54,
+        size: 64,
+      );
+    }
+    // 网络
+    if (a.url.isEmpty) {
+      return const Icon(
+        Icons.broken_image,
+        color: Colors.white54,
+        size: 64,
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: a.url,
+      fit: BoxFit.contain,
+      placeholder: (_, __) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white,
+        ),
+      ),
+      errorWidget: (_, __, ___) => const Icon(
+        Icons.broken_image,
+        color: Colors.white54,
+        size: 64,
       ),
     );
   }
