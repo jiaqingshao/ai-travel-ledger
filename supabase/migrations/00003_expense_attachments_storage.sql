@@ -63,7 +63,7 @@ CREATE POLICY "Expense attachments are viewable by trip collaborators"
     bucket_id = 'expense-attachments'
     AND EXISTS (
       SELECT 1 FROM public.trips t
-      JOIN public.collaborators c ON c.trip_id = t.id
+      JOIN public.trip_collaborators c ON c.trip_id = t.id
       WHERE t.id::text = split_part(name, '/', 1)
         AND c.user_id = auth.uid()
     )
@@ -76,7 +76,7 @@ CREATE POLICY "Expense attachments are insertable by trip collaborators"
     bucket_id = 'expense-attachments'
     AND EXISTS (
       SELECT 1 FROM public.trips t
-      JOIN public.collaborators c ON c.trip_id = t.id
+      JOIN public.trip_collaborators c ON c.trip_id = t.id
       WHERE t.id::text = split_part(name, '/', 1)
         AND c.user_id = auth.uid()
     )
@@ -110,13 +110,16 @@ ALTER TABLE public.expenses
 
 -- 触发器: 写 attachment_metadata 时自动同步到 attachments (url 列表)
 -- 这样 view 现有 column 仍有值
+-- [PR-2 修复] S-2: 原来用 jsonb_array_elements_text 把整个 JSON 对象 stringify 进 text[],
+-- 现改为提取每项的 url 字段 (text[] 存的就是 url 列表)
 CREATE OR REPLACE FUNCTION sync_expense_attachments()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.attachments := ARRAY(
-    SELECT jsonb_array_elements_text(
+    SELECT (item->>'url')::text
+    FROM jsonb_array_elements(
       COALESCE(NEW.attachment_metadata->'items', '[]'::jsonb)
-    )
+    ) AS item
   );
   RETURN NEW;
 END;
@@ -144,3 +147,8 @@ CREATE TRIGGER trg_sync_expense_attachments
 --   - RLS: VIEW (协作者) / INSERT (协作者) / DELETE (owner)
 --   - 表字段: attachment_metadata JSONB
 --   - 触发器: 同步 attachments text[] <-> attachment_metadata
+--
+-- 2026-07-15 09:41 (Asia/Shanghai) — [PR-2 修复]
+--   - S-1: collaborators → trip_collaborators (2 处 JOIN 引用错的表名, 部署必失败)
+--   - S-2: 触发器从 jsonb_array_elements_text (stringify 整个对象) 改为提取 (item->>'url')
+--         现在 attachments text[] 存的是干净的 URL 列表
