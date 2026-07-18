@@ -106,11 +106,25 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     // 初始化 controllers + focus nodes (ISSUE-028 修复)
     _specificCtrls = {
       for (final m in widget.members)
-        m.id: TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
+        m.id:
+            TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
     };
     _specificFocuses = {
-      for (final m in widget.members) m.id: FocusNode(debugLabel: 'specific_${m.id}'),
+      for (final m in widget.members)
+        m.id: FocusNode(debugLabel: 'specific_${m.id}'),
     };
+
+    // ISSUE-040 修复: 监听 focus 变化, 追踪当前焦点成员
+    for (final entry in _specificFocuses.entries) {
+      entry.value.addListener(() {
+        if (!mounted) return;
+        if (entry.value.hasFocus) {
+          setState(() => _focusedSpecificMemberId = entry.key);
+        } else if (_focusedSpecificMemberId == entry.key) {
+          setState(() => _focusedSpecificMemberId = null);
+        }
+      });
+    }
 
     // 默认值
     if (_type == SplitType.equal) {
@@ -136,7 +150,8 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     for (final m in widget.members) {
       _specificCtrls.putIfAbsent(
         m.id,
-        () => TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
+        () =>
+            TextEditingController(text: _formatSpecific(_specific[m.id] ?? 0)),
       );
       _specificFocuses.putIfAbsent(
         m.id,
@@ -364,8 +379,7 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     return Column(
       children: [
         _hintText('拖动滑块设置比例（自动归一化）'),
-        for (final m in widget.members)
-          _ratioSliderRow(m),
+        for (final m in widget.members) _ratioSliderRow(m),
       ],
     );
   }
@@ -419,8 +433,7 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     return Column(
       children: [
         _hintText('每人份数（默认 1，可改）'),
-        for (final m in widget.members)
-          _sharesRow(m),
+        for (final m in widget.members) _sharesRow(m),
       ],
     );
   }
@@ -472,13 +485,65 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
 
   // ============================ 固定金额 ============================
 
+  /// ISSUE-040 修复: 当前聚焦的 specific 成员 id (用于'下一个'按钮判断是否在最后)
+  String? _focusedSpecificMemberId;
+
+  /// ISSUE-040 修复: 是否有成员能接收焦点 (有成员且未全填)
+  bool get _canGoNextSpecific {
+    if (widget.members.isEmpty) return false;
+    if (_focusedSpecificMemberId == null) return true; // 初始无焦点 → 可跳第一个
+    final memberIds = widget.members.map((m) => m.id).toList();
+    final idx = memberIds.indexOf(_focusedSpecificMemberId);
+    return idx >= 0 && idx < memberIds.length - 1;
+  }
+
+  /// ISSUE-040 修复: 跳到下一个 specific 成员
+  void _goToNextSpecificMember() {
+    final memberIds = widget.members.map((m) => m.id).toList();
+    if (memberIds.isEmpty) return;
+    final currentIdx = _focusedSpecificMemberId == null
+        ? -1
+        : memberIds.indexOf(_focusedSpecificMemberId);
+    final nextIdx = currentIdx + 1;
+    if (nextIdx >= memberIds.length) return; // 已是最后
+    final nextMemberId = memberIds[nextIdx];
+    _specificFocuses[nextMemberId]?.requestFocus();
+  }
+
   Widget _specificPanel() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _hintText('输入每人金额（总和必须等于总额）'),
         for (final m in widget.members) _specificRow(m),
         const SizedBox(height: 8),
         _specificSumWarning(),
+        // ISSUE-040 修复: 底部"下一个"按钮 - 末格变灰
+        const SizedBox(height: 8),
+        _specificNextButton(),
+      ],
+    );
+  }
+
+  /// ISSUE-040 修复: specific 模式的"下一个"按钮
+  Widget _specificNextButton() {
+    final canNext = _canGoNextSpecific;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: canNext ? _goToNextSpecificMember : null,
+            icon: const Icon(Icons.arrow_downward, size: 16),
+            label: Text(canNext ? '下一个' : '已是最后一位'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              // 末格变灰提示
+              foregroundColor: canNext
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -555,9 +620,8 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: ok
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+        color:
+            ok ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -650,8 +714,7 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
           '组间比例（可选，默认 1:1）',
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
-        for (final g in selected)
-          _groupRatioRow(g),
+        for (final g in selected) _groupRatioRow(g),
       ],
     );
   }
@@ -700,8 +763,8 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
 
   Widget _selectedGroupsMembers() {
     final selectedMembers = widget.members
-        .where((m) =>
-            m.groupId != null && _selectedGroupIds.contains(m.groupId))
+        .where(
+            (m) => m.groupId != null && _selectedGroupIds.contains(m.groupId))
         .toList();
     if (selectedMembers.isEmpty) return const SizedBox.shrink();
 
