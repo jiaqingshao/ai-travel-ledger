@@ -12,6 +12,7 @@ import '../providers/trip_provider.dart';
 import 'expense_list_screen.dart';
 import 'group_manage_screen.dart';
 import 'member_manage_screen.dart';
+import 'expense_report_screen.dart';
 import 'settlement_screen.dart';
 import 'trip_edit_screen.dart';
 
@@ -37,6 +38,19 @@ class TripDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(trip.name),
         actions: [
+          // ADR-009: 费用报告入口 (Phase 1: 汇总卡 MVP)
+          IconButton(
+            tooltip: '费用报告',
+            icon: const Icon(Icons.bar_chart_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ExpenseReportScreen(tripId: tripId),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: '编辑',
             icon: const Icon(Icons.edit_outlined),
@@ -111,8 +125,9 @@ class TripDetailScreen extends ConsumerWidget {
               );
             },
             child: membersAsync.when(
-              loading: () =>
-                  const Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator()),
+              loading: () => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: LinearProgressIndicator()),
               error: (e, _) => Text('加载失败：$e'),
               data: (list) {
                 if (list.isEmpty) {
@@ -165,7 +180,8 @@ class TripDetailScreen extends ConsumerWidget {
             },
             child: groupsAsync.when(
               loading: () => const Padding(
-                  padding: EdgeInsets.all(16), child: LinearProgressIndicator()),
+                  padding: EdgeInsets.all(16),
+                  child: LinearProgressIndicator()),
               error: (e, _) => Text('加载失败：$e'),
               data: (list) {
                 if (list.isEmpty) {
@@ -180,7 +196,8 @@ class TripDetailScreen extends ConsumerWidget {
                       .map((g) => ListTile(
                             dense: true,
                             contentPadding: EdgeInsets.zero,
-                            leading: Text(g.icon, style: const TextStyle(fontSize: 20)),
+                            leading: Text(g.icon,
+                                style: const TextStyle(fontSize: 20)),
                             title: Text(g.name),
                             subtitle: Text(g.groupType.displayName),
                           ))
@@ -284,21 +301,23 @@ class _FinancialSummary extends ConsumerWidget {
             loading: () => const Center(
               child: Padding(
                 padding: EdgeInsets.all(8),
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               ),
             ),
-            error: (e, _) => Text('加载失败：$e',
-                style: const TextStyle(color: Colors.white)),
+            error: (e, _) =>
+                Text('加载失败：$e', style: const TextStyle(color: Colors.white)),
             data: (expenses) {
-              final total = expenses.fold<double>(0, (sum, e) => sum + e.amount);
+              final total =
+                  expenses.fold<double>(0, (sum, e) => sum + e.amount);
               final memberCount = membersAsync.maybeWhen(
                 data: (m) => m.length,
                 orElse: () => 0,
               );
               final perPerson = memberCount > 0 ? total / memberCount : 0.0;
               // ISSUE-026 step 4: 附件总数 = 所有费用 attachments.length 求和
-              final attachmentCount = expenses.fold<int>(
-                  0, (sum, e) => sum + e.attachments.length);
+              final attachmentCount =
+                  expenses.fold<int>(0, (sum, e) => sum + e.attachments.length);
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -327,9 +346,10 @@ class _FinancialSummary extends ConsumerWidget {
             },
           ),
           if (expensesAsync.maybeWhen(
-            data: (l) => l.fold<int>(0, (s, e) => s + e.attachments.length),
-            orElse: () => 0,
-          ) > 0)
+                data: (l) => l.fold<int>(0, (s, e) => s + e.attachments.length),
+                orElse: () => 0,
+              ) >
+              0)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Row(
@@ -472,9 +492,13 @@ class _TripInfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (trip.destination != null && trip.destination!.isNotEmpty)
-              _InfoRow(icon: Icons.place, label: '目的地', value: trip.destination!),
+              _InfoRow(
+                  icon: Icons.place, label: '目的地', value: trip.destination!),
             _InfoRow(icon: Icons.calendar_today, label: '日期', value: dateRange),
-            _InfoRow(icon: Icons.attach_money, label: '基础币种', value: trip.baseCurrency),
+            _InfoRow(
+                icon: Icons.attach_money,
+                label: '基础币种',
+                value: trip.baseCurrency),
           ],
         ),
       ),
@@ -483,7 +507,8 @@ class _TripInfoCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
   final IconData icon;
   final String label;
   final String value;
@@ -525,7 +550,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.label,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -558,19 +584,17 @@ class _SectionCard extends StatelessWidget {
               children: [
                 Icon(icon, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(title,
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
                 if (count != null) ...[
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text('$count',
-                        style: const TextStyle(fontSize: 11)),
+                    child: Text('$count', style: const TextStyle(fontSize: 11)),
                   ),
                 ],
                 const Spacer(),
