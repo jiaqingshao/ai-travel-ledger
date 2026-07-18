@@ -8,7 +8,7 @@ import '../../domain/services/split_calculator.dart' show SplitType;
 import '../widgets/split_type_selector.dart';
 
 /// 分摊规则编辑页 (V1.1 / ISSUE-024 完整版)
-/// 
+///
 /// 用法:
 /// ```dart
 /// final result = await Navigator.push<SplitRuleExport>(
@@ -91,7 +91,35 @@ class _SplitRuleEditPageState extends ConsumerState<SplitRuleEditPage> {
   Map<String, double>? get _initialRatios {
     final values = _initialParams['values'];
     if (values is Map) {
-      return values.map((k, v) => MapEntry(k.toString(), (v as num).toDouble()));
+      return values
+          .map((k, v) => MapEntry(k.toString(), (v as num).toDouble()));
+    }
+    return null;
+  }
+
+  /// ISSUE-038 修复：解析按份数 (shares) 初始值
+  ///
+  /// shares 与 specific 都用 SplitRule.values 字段 ({ memberId: number })
+  /// 区别在 type，所以这两个 getter 共用同一个解析逻辑
+  Map<String, double>? get _initialShares {
+    final type = _initialParams['type'] as String?;
+    if (type != 'shares') return null;
+    final values = _initialParams['values'];
+    if (values is Map) {
+      return values
+          .map((k, v) => MapEntry(k.toString(), (v as num).toDouble()));
+    }
+    return null;
+  }
+
+  /// ISSUE-038 修复：解析按固定金额 (specific) 初始值
+  Map<String, double>? get _initialSpecific {
+    final type = _initialParams['type'] as String?;
+    if (type != 'specific') return null;
+    final values = _initialParams['values'];
+    if (values is Map) {
+      return values
+          .map((k, v) => MapEntry(k.toString(), (v as num).toDouble()));
     }
     return null;
   }
@@ -107,12 +135,36 @@ class _SplitRuleEditPageState extends ConsumerState<SplitRuleEditPage> {
     return null;
   }
 
+  /// ISSUE-038 修复：_save 不再静默 pop(null)
+  ///
+  /// 原 bug：
+  /// 1. _selectorKey.currentState 在首帧还未挂载时为 null → 静默返回 null
+  /// 2. exportRule() 返回 null（按比例/份数 全 0 等参数不合法）→ 静默返回 null
+  /// 3. 父页面 setState 跳过更新 → 用户以为保存了，实际未改
+  ///
+  /// 修复：
+  /// - 不挂载完成 → Snackbar 提示，不退出
+  /// - 规则无效 → Snackbar 提示，不退出
+  /// - 有效 → 正常 pop<SplitRuleExport>(export)
   void _save() {
-    final export = _selectorKey.currentState?.exportRule();
-    if (export == null) {
-      Navigator.pop(context);
+    if (!mounted) return;
+
+    final state = _selectorKey.currentState;
+    if (state == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('分摊选择器还在初始化，请稍后再试')),
+      );
       return;
     }
+
+    final export = state.exportRule();
+    if (export == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('分摊规则无效，请检查输入（如份数/比例不能全为 0）')),
+      );
+      return;
+    }
+
     Navigator.pop<SplitRuleExport>(context, export);
   }
 
@@ -167,6 +219,8 @@ class _SplitRuleEditPageState extends ConsumerState<SplitRuleEditPage> {
                 tripId: widget.tripId,
                 initialType: _initialType ?? SplitType.equal,
                 initialRatios: _initialRatios,
+                initialShares: _initialShares,
+                initialSpecific: _initialSpecific,
                 initialGroupIds: _initialGroupIds,
               ),
             ),
