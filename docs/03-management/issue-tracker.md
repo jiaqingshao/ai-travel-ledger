@@ -2,9 +2,13 @@
 
 > **状态面板**：每条 ISSUE 的"状态"字段反映**代码现实**，而不是 issue-tracker 标记。
 > **维护规则**：commit `feat/fix/*` 必须同步更新对应 ISSUE 状态（已修的标 ✅ 未修的标 🔧）。
-> **最后同步**：2026-07-15 (与 ADR-004 决策同步)
+> **最后同步**：2026-07-18 (真机测试发现 4 个新问题 + ADR-009)
 
 > 📋 **v0.3.1 决策摘要（2026-07-15）**：PRD v0.3 新增 3 个 P0 (E-008 语音记账 / E-009 重复费用 / E-010 旅程统计) **暂缓至 V1.1 候选**。详见 [ADR-004](../02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md) → ISSUE-031/032/033。
+>
+> 🆕 **v1.3 测试反馈 (2026-07-18)**：用户在 v1.3.0-phase1-local-test APK 上报告 4 个问题 → ISSUE-038~041。
+>
+> 📐 **ADR-009** (2026-07-18)：费用报告功能需求变更。
 
 ---
 
@@ -715,17 +719,18 @@
 
 ---
 
-## 📊 ISSUE 统计摘要 (2026-07-15)
+## 📊 ISSUE 统计摘要 (2026-07-18)
 
 | 状态 | 数量 | 详情 |
 |---|---|---|
-| ✅ 已修复 | 21 | 013, 015, 016, 017, 018, 019, 020, 021, 022, 023, 024, 027, 028, 029, 030 |
+| ✅ 已修复 | 22 | 013, 015, 016, 017, 018, 019, 020, 021, 022, 023, 024, 027, 028, 029, 030, **026 step 4 (汇总附件总数)** |
 | ⏸️ 已搁置 (用户决策) | 4 | 014 (Android 模拟器), 025 (Google Play), 035 (iOS), **036 (TCB 迁移 - ADR-008 撤销)** |
-| 📋 待启动 | 4 | **034 (国内 Android 上架 - Phase 1 纯本地)**, **037 (V2.0 云端启用), 026-焦点跳转 (V1.1.1)** |
+| 📋 待启动 | **7** | **034 (国内 Android 上架), 037 (V2.0 云端启用), 026-焦点跳转 (V1.1.1), 038 分摊规则保存失效, 039 本地附件支持, 040 输入下一步, 041 客户场景数据填充 (待澄清)** |
 | ⏳ 进行中 | 0 | — |
 | 🆕 **⏸️ V1.1 Backlog** | **3** | **031 (E-008 语音), 032 (E-009 重复), 033 (E-010 统计) — ADR-004 决策** |
+| 📐 **需求变更 (ADR)** | **1** | **ADR-009 费用报告 (2026-07-18)** |
 
-**总 ISSUE 数**: 30 个实体条目 (013~037, 不含中间代码 # 标识或重复条目)
+**总 ISSUE 数**: 32 个实体条目 (013~041, 不含中间代码 # 标识或重复条目)
 
 ---
 
@@ -940,6 +945,7 @@
 - **决策文档**:
   - [ADR-004](../02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md) — PRD v0.3 P0 暂缓
   - [ADR-005](../02-architecture/04-adr/ADR-005-android-cn-only.md) — 发布路线调整 (国内 Android only)
+  - [ADR-009](../02-architecture/04-adr/ADR-009-expense-report.md) — 费用报告需求变更
 - 完整修复时间线: `memory/2026-07-11-timeline-rebuild.md`
 - 模拟器问题专家评审: `docs/03-management/troubleshooting/2026-07-11-emulator-boot-report.md`
 - 真机测试 checklist: `docs/03-management/verification/v0.2.0-real-device-test-checklist.md`
@@ -949,5 +955,149 @@
 
 ---
 
-*本文件最后同步: 2026-07-15 (ADR-004 + ADR-005 决策同步)*
+## 🆕 🐛 v1.3 真机测试问题 (2026-07-18)
+
+> 来源: 用户在 v1.3.0-phase1-local-test APK (commit `0418f26`) 上测试发现
+
+### ISSUE-038 — 修改费用时"分摊规则修改"保存失效 [P1 严重]
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-038 |
+| **等级** | P1 严重 |
+| **模块** | `lib/presentation/screens/expense_detail_screen.dart` + `lib/presentation/screens/split_rule_edit_page.dart` |
+| **报告时间** | 2026-07-18 |
+| **报告人** | 用户真机测试 |
+| **状态** | 🔧 待修复 |
+| **发现版本** | v1.3.0-phase1-local-test (commit `0418f26`) |
+
+**问题描述**: 编辑已有费用，点"调整分摊规则"进入 SplitRuleEditPage → 修改分摊类型/金额 → 保存 → 关闭页面 → 点主页面"保存" → **分摊规则修改未生效**
+
+**调研结论** (3 个独立根因):
+
+1. **缺初始参数** (`split_rule_edit_page.dart:168-170`):
+   ```dart
+   initialType: _initialType ?? SplitType.equal,
+   initialRatios: _initialRatios,
+   initialGroupIds: _initialGroupIds,
+   // ❌ 缺 initialShares (按份数模式会被默认值覆盖)
+   // ❌ 缺 initialAmounts (按固定金额模式会被默认值覆盖)
+   ```
+   当原始分摊是 "按份数" 或 "按固定金额" 时, SplitTypeSelector 用默认值覆盖, 重新选中仍显示初始数据, 但用户修改后的导出实际是 0/默认值。
+
+2. **静默保存失败** (`split_rule_edit_page.dart:110-117`):
+   ```dart
+   void _save() {
+     final export = _selectorKey.currentState?.exportRule();
+     if (export == null) {
+       Navigator.pop(context);  // ❌ 静默返回 null, 用户无感知
+       return;
+     }
+     Navigator.pop<SplitRuleExport>(context, export);
+   }
+   ```
+   Selector 还没挂载完成 (时序问题) 时, 会静默返回 null, 父页面 `setState` 跳过修改 → 用户以为保存了, 实际没改。
+
+3. **byGroup 类型不一致**: SplitType.byGroup 的 participants 是 groupId, widget.members 传的是 memberId, 需检查 GroupLookup 逻辑
+
+**影响**: 严重 — 分摊规则保存是 V1.1 / ISSUE-024 完整修复的核心功能, 不可用相当于该功能退回到 v1.0.0
+
+**修复计划**: PR-Z1 (1-2 小时, 低风险)
+- 加 initialShares/initialAmounts 参数读取
+- _save 加 mounted + try/catch + 弹 Snackbar (不静默 pop)
+- Navigator.pop 加泛型 `<SplitRuleExport?>` + null check
+- addPostFrameCallback 包 _save 避免时序
+- 加测试: 编辑现有"按份数"费用 → 改 → 保存 → 验证 db splitRuleJson
+
+---
+
+### ISSUE-039 — 本地模式附件功能不可用 [P1 严重]
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-039 |
+| **等级** | P1 严重 (V1.3 上架前必修) |
+| **模块** | `lib/presentation/widgets/attachment_picker_section.dart` + `lib/data/repositories/attachment_repository.dart` |
+| **报告时间** | 2026-07-18 |
+| **状态** | 🔧 待修复 (等用户选方案) |
+
+**问题描述**: 本地模式下点"加附件"，弹 Snackbar `❌ 附件功能需要云同步`，无法添加任何附件
+**根因**: `attachment_picker_section.dart:69` 硬性拒绝 `!settings.isCloudMode`
+
+**修复方案** (用户选择, 见下一轮报告):
+
+| 方案 | 描述 | 工作量 | 推荐 |
+|---|---|---|---|
+| **A** | 纯本地文件 (沙盒 + 路径引用) | ~3 小时 | ⭐ 用户偏好 |
+| **B** | Base64 bytes 存 Hive | ~2 小时 | 数据紧凑但 Hive 变重 |
+| **C** | 本地 + Android Auto Backup | ~2.5 小时 | 国内 Google 不可用 |
+| **D** | UI 显式 V2.0 提示 + 禁用 | ~10 分钟 | 零功能 |
+
+**修复计划**: PR-Z2 (待用户确认方案)
+
+---
+
+### ISSUE-040 — 输入费用增加"下一步"按钮 (UX 改善) [P3]
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-040 |
+| **等级** | P3 改善 |
+| **报告时间** | 2026-07-18 |
+| **状态** | ❓ 待用户澄清 |
+
+**用户描述**: "输入费用的时候, 没有'下一步'按钮, 建议增加。下一步顺序: 总价 → 第 1 个金额格子 → 第 2 个金额格子, 最后一个格子到了以后下一步按钮灰色不可点"
+
+**待澄清**:
+1. "第 1 个金额格子" 指 expense_create_screen 的金额输入框, 还是 SplitRuleEditPage 的按比例/份数 成员的输入格子?
+2. 输完成员 1 比例后, 按"下一步"跳到成员 2 的输入, 是这个意思吗?
+
+**修复计划**: PR-Z3 (1-2 小时, 待澄清)
+
+---
+
+### ISSUE-041 — 客户场景数据填充 [P3 不明确]
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-041 |
+| **等级** | P3 不明确 |
+| **报告时间** | 2026-07-18 |
+| **状态** | ❓ 待用户澄清 |
+
+**用户描述**: 在"几条改善"部分提到"客户场景数据填充", 但未给出具体需求
+
+**可能含义**:
+1. 增加预设场景演示数据 (现有"京都赏樱 7 日 3 成员 4 笔费用"扩展为周末游/长途自驾/商务出差)
+2. 用真实客户案例数据 (脱敏) 替换虚构演示
+3. 增加"模板"功能, 用户可保存场景模板, 一键填充新旅程
+
+**修复计划**: PR-Z4 (待澄清)
+
+---
+
+## 📐 ADR-009 费用报告 (2026-07-18 需求变更)
+
+详见 [ADR-009](../02-architecture/04-adr/ADR-009-expense-report.md)
+
+**新增功能**: 用户点击"费用报告" → 生成截止目前的费用分析报告
+
+**最低要求** (MVP):
+1. 全旅程汇总 (总花费 / 人均 / 笔数 / 类别占比)
+2. 分类饼图 (油费/餐饮/住宿/其他)
+3. 人均柱状图 (谁花得多)
+4. 时间趋势折线 (每日消费节奏)
+5. 报告分享 (生成长图导出)
+
+**关联**: ADR-004 暂缓的 E-010 (旅程统计) 重新唤醒, 分阶段实施
+
+**工作量**: 4-6 周 (含 fl_chart 集成 + UI 设计 + 分享功能)
+
+**优先级**: P2 一般 (V1.3 上架后开始)
+
+**修复计划**: PR 系列 (ADR-009 批准后启动)
+
+---
+
+*本文件最后同步: 2026-07-18 (真机测试反馈 ISSUE-038~041 登记 + ADR-009 需求)*
 *维护人: PM 主 Agent (minimax/MiniMax-M3)*
