@@ -474,7 +474,7 @@ class _DailyBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Column(
-        mainAxisAlignment: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             amount > 0 ? df.format(amount) : '',
