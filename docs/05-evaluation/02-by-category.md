@@ -93,7 +93,7 @@
 | S-24 | 🔴 | ❌ 未修 | 4 层 AsyncValue.when 嵌套 | (同 v1) |
 | M-1 | 🟡 | ❌ 未修 | `group_settlement_screen` 3 层 when | (同 v1) |
 | M-13 | 🟡 | ❌ 未修 | 数字键盘 0 开头逻辑混乱 | (同 v1) |
-| M-4 | 🟡 | ❌ 未修 | `tripByIdProvider` 重复 watch + 不响应变化 | (同 v1) |
+| M-4 | 🟡 → 🔴 S-26 | ✅ 已修 (PR-Z5) | `expenseByIdProvider` 重复 watch + 不响应变化 | 2026-07-20 (升级 S-26) |
 | M-20 | 🟡 | ❌ 未修 | 删除 trip 无二次校验 | (同 v1) |
 
 **v2 横向分析**:

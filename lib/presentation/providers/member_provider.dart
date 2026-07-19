@@ -11,8 +11,8 @@ final memberRepositoryProvider = Provider<MemberRepository>((ref) {
 });
 
 /// 指定旅程的成员列表（响应式）
-final membersByTripProvider =
-    StreamProvider.autoDispose.family<List<Member>, String>((ref, tripId) async* {
+final membersByTripProvider = StreamProvider.autoDispose
+    .family<List<Member>, String>((ref, tripId) async* {
   final repo = ref.watch(memberRepositoryProvider);
   yield repo.listByTrip(tripId);
   await for (final _ in repo.watch()) {
@@ -20,12 +20,17 @@ final membersByTripProvider =
   }
 });
 
-/// 指定旅程 + 组 的成员列表
-final membersByGroupProvider = Provider.family<List<Member>,
-    ({String tripId, String? groupId})>((ref, args) {
+/// 指定旅程 + 组 的成员列表（响应式：订阅 box.watch() 自动重建）
+///
+/// ISSUE-042 修复: 同 expenseByIdProvider 根因.
+final membersByGroupProvider = StreamProvider.autoDispose
+    .family<List<Member>, ({String tripId, String? groupId})>(
+        (ref, args) async* {
   final repo = ref.watch(memberRepositoryProvider);
-  ref.watch(memberRepositoryProvider);
-  return repo.listByGroup(args.tripId, args.groupId);
+  yield repo.listByGroup(args.tripId, args.groupId);
+  await for (final _ in repo.watch()) {
+    yield repo.listByGroup(args.tripId, args.groupId);
+  }
 });
 
 /// 成员操作 Notifier

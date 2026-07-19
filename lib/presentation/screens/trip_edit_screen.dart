@@ -29,7 +29,8 @@ class _TripEditScreenState extends ConsumerState<TripEditScreen> {
   @override
   void initState() {
     super.initState();
-    final trip = ref.read(tripByIdProvider(widget.tripId));
+    // ISSUE-042: tripByIdProvider 现在是 StreamProvider, ref.read 拿 AsyncValue
+    final trip = ref.read(tripByIdProvider(widget.tripId)).valueOrNull;
     _nameCtrl = TextEditingController(text: trip?.name ?? '');
     _destinationCtrl = TextEditingController(text: trip?.destination ?? '');
     _currency = trip?.baseCurrency ?? 'CNY';
@@ -93,8 +94,7 @@ class _TripEditScreenState extends ConsumerState<TripEditScreen> {
               ),
               items: TripStatus.values
                   .where((s) => s != TripStatus.archived)
-                  .map((s) =>
-                      DropdownMenuItem(value: s, child: Text(s.label)))
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s.label)))
                   .toList(),
               onChanged: (v) => setState(() => _status = v ?? _status),
             ),

@@ -1084,6 +1084,71 @@
 
 ---
 
+### ISSUE-042 — Provider.family 缓存导致编辑不生效 (M-4 → S-26) [🔴 S 严重]
+
+| 字段 | 值 |
+|---|---|
+| **Issue ID** | ISSUE-042 |
+| **等级** | 🔴 S 严重 (从 M-4 升级) |
+| **报告时间** | 2026-07-20 |
+| **报告人** | 用户真机测试 |
+| **状态** | ✅ 已修复 |
+| **修复版本** | v1.3.0-phase3 (待发布) |
+
+**问题描述**:
+- 费用详情页编辑修改分摊规则, 保存退出后再进去仍看到旧规则
+- 改了金额/类别/描述/附件同样不生效
+- 重启 APP 后才看到新数据
+- 多设备同步后 Expense 详情页不响应云端更新
+- 热重载不刷新 Expense 详情
+
+**根因** (3 个 Provider 全部有相同 bug):
+\`\`\`dart
+// 错误写法: ref.watch(repoProvider) 是 noop, 永远不变
+final expenseByIdProvider = Provider.family<Expense?, String>((ref, id) {
+  final repo = ref.watch(expenseRepositoryProvider);
+  ref.watch(expenseRepositoryProvider);  // 注释写"订阅 box 变更", 实际是 noop
+  return repo.getById(id);
+});
+\`\`\`
+
+**对比正确写法** (expensesByTripProvider 是对的):
+\`\`\`dart
+// 订阅 repo.watch() 才是真订阅 box 流
+StreamProvider.autoDispose.family<List<Expense>, String>((ref, tripId) async* {
+  final repo = ref.watch(expenseRepositoryProvider);
+  yield repo.listByTrip(tripId);
+  await for (final _ in repo.watch()) {
+    yield repo.listByTrip(tripId);
+  }
+});
+\`\`\`
+
+**受影响的 3 个 Provider**:
+| Provider | 文件 | 严重度 |
+|---|---|---|
+| \`expenseByIdProvider\` | expense_provider.dart:24 | 🔴 S (用户报告场景) |
+| \`tripByIdProvider\` | trip_provider.dart:45 | 🟡 M (同类问题) |
+| \`membersByGroupProvider\` | member_provider.dart:24 | 🟡 M (同类问题) |
+
+**修复**: 全部改为 \`StreamProvider.autoDispose.family\` 订阅 \`repo.watch()\`
+- UI 层 (3 个 screen) 适配 \`AsyncValue\`: \`ref.watch(...).maybeWhen(data: ..., orElse: ...)\`
+- 测试 (2 个) 改用 \`c.read(provider.future)\` 等首次 yield
+
+**修复工作量**:
+- 代码: 3 个 Provider + 3 个 screen
+- 测试: 2 个新回归测试 (验证 update 后立刻看到新值)
+
+**回归测试** (test/providers/expense_provider_test.dart):
+- \`ISSUE-042: update 后 expenseByIdProvider 立刻返回新值\`
+- \`ISSUE-042: update splitRuleJson 后立刻反映\`
+
+**v3 报告关联**:
+- 升级: M-4 (中等) → S-26 (严重)
+- 位置: docs/05-evaluation/02-by-category.md:96
+
+---
+
 ## 📐 ADR-009 费用报告 (2026-07-18 需求变更)
 
 详见 [ADR-009](../02-architecture/04-adr/ADR-009-expense-report.md)

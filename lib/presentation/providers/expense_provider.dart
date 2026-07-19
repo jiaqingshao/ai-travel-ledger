@@ -11,8 +11,8 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 });
 
 /// 指定 trip 的费用列表（响应式，默认排除软删除）
-final expensesByTripProvider =
-    StreamProvider.autoDispose.family<List<Expense>, String>((ref, tripId) async* {
+final expensesByTripProvider = StreamProvider.autoDispose
+    .family<List<Expense>, String>((ref, tripId) async* {
   final repo = ref.watch(expenseRepositoryProvider);
   yield repo.listByTrip(tripId);
   await for (final _ in repo.watch()) {
@@ -20,12 +20,18 @@ final expensesByTripProvider =
   }
 });
 
-/// 按 id 取单个费用（同步取 Box 值）
-final expenseByIdProvider = Provider.family<Expense?, String>((ref, id) {
+/// 按 id 取单个费用（响应式：订阅 box.watch() 自动重建）
+///
+/// ISSUE-042 修复: 原版用 Provider.family + ref.watch(repoProvider) (no-op),
+/// Hive box 写入时不会重建, 导致编辑后详情页仍显示旧值.
+/// 现改为 StreamProvider.autoDispose.family 订阅 repo.watch() 流.
+final expenseByIdProvider =
+    StreamProvider.autoDispose.family<Expense?, String>((ref, id) async* {
   final repo = ref.watch(expenseRepositoryProvider);
-  // 订阅 box 变更以触发重建
-  ref.watch(expenseRepositoryProvider);
-  return repo.getById(id);
+  yield repo.getById(id);
+  await for (final _ in repo.watch()) {
+    yield repo.getById(id);
+  }
 });
 
 /// 指定 trip 的总金额（响应式：订阅 box watch）

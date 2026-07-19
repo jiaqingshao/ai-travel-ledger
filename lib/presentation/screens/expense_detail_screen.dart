@@ -93,9 +93,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
   }
 
   static String _fileNameFromUrl(String url) {
-    final last = url.contains('/')
-        ? url.substring(url.lastIndexOf('/') + 1)
-        : url;
+    final last =
+        url.contains('/') ? url.substring(url.lastIndexOf('/') + 1) : url;
     return last.isEmpty ? url : last;
   }
 
@@ -110,7 +109,19 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final expense = ref.watch(expenseByIdProvider(widget.expenseId));
+    // ISSUE-042: expenseByIdProvider 改为 StreamProvider.autoDispose.family,
+    // 现在是 AsyncValue<Expense?>, 用 .when 处理 3 个状态
+    final expenseAsync = ref.watch(expenseByIdProvider(widget.expenseId));
+    final expense = expenseAsync.maybeWhen(
+      data: (e) => e,
+      orElse: () => null,
+    );
+    if (expenseAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('费用详情')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     if (expense == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('费用详情')),
@@ -169,9 +180,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         Card(
-          color: isDeleted
-              ? Theme.of(context).colorScheme.errorContainer
-              : null,
+          color:
+              isDeleted ? Theme.of(context).colorScheme.errorContainer : null,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -349,8 +359,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
 
   // V1.1: 分摊规则编辑入口
   Widget _buildSplitRuleTile(List<Member> members) {
-    final hasRule = _editingSplitRuleJson != null &&
-        _editingSplitRuleJson!.isNotEmpty;
+    final hasRule =
+        _editingSplitRuleJson != null && _editingSplitRuleJson!.isNotEmpty;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.pie_chart_outline),
@@ -358,15 +368,12 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
         subtitle: Text(
           hasRule ? '已设置 (点击修改)' : '默认均摊 (点击设置)',
           style: TextStyle(
-            color: hasRule
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey,
+            color:
+                hasRule ? Theme.of(context).colorScheme.primary : Colors.grey,
           ),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: members.isEmpty
-            ? null
-            : () => _openSplitRuleEditor(members),
+        onTap: members.isEmpty ? null : () => _openSplitRuleEditor(members),
       ),
     );
   }
@@ -462,9 +469,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AttachmentViewer(
-          attachments: _editingAttachments
-              .where((a) => a.url.isNotEmpty)
-              .toList(),
+          attachments:
+              _editingAttachments.where((a) => a.url.isNotEmpty).toList(),
           initialIndex: initialIndex,
         ),
       ),
@@ -568,9 +574,8 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
             payerId: _editingPayerId,
             amount: amount,
             category: _category,
-            description: _descCtrl.text.trim().isEmpty
-                ? null
-                : _descCtrl.text.trim(),
+            description:
+                _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
             occurredAt: _editingOccurredAt,
             splitRuleJson: _editingSplitRuleJson,
             attachments: _editingAttachments

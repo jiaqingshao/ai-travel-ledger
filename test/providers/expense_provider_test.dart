@@ -64,7 +64,8 @@ void main() {
     membersBox = await Hive.openBox<Member>('members_$ts');
     groupsBox = await Hive.openBox<TripGroup>('groups_$ts');
     expensesBox = await Hive.openBox<Expense>('expenses_$ts');
-    transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records_$ts');
+    transferRecordsBox =
+        await Hive.openBox<TransferRecord>('transfer_records_$ts');
     appSettingsBox = await Hive.openBox<dynamic>('app_settings_$ts');
     attachmentsBox = await Hive.openBox<Attachment>('attachments_$ts');
   });
@@ -131,8 +132,7 @@ void main() {
       expect(result.duplicate, isNull);
     });
 
-    test('create 触发 duplicate 检测（第二条相同 → 返回 duplicate）',
-        () async {
+    test('create 触发 duplicate 检测（第二条相同 → 返回 duplicate）', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
       final notifier = c.read(expenseNotifierProvider.notifier);
@@ -174,12 +174,12 @@ void main() {
       );
       // 未写入前的预检
       final dup = c.read(expenseNotifierProvider.notifier).precheckDuplicate(
-        tripId: 't1',
-        payerId: 'm1',
-        amount: 50.0,
-        category: ExpenseCategory.food,
-        occurredAt: DateTime(2026, 6, 1, 18),
-      );
+            tripId: 't1',
+            payerId: 'm1',
+            amount: 50.0,
+            category: ExpenseCategory.food,
+            occurredAt: DateTime(2026, 6, 1, 18),
+          );
       expect(dup, isNotNull);
     });
 
@@ -313,9 +313,73 @@ void main() {
         category: ExpenseCategory.food,
         splitRuleJson: '{}',
       );
-      final fetched = c.read(expenseByIdProvider(r1.expense.id));
+      // ISSUE-042: expenseByIdProvider 现在是 StreamProvider.autoDispose.family
+      // 用 .future 等待第一次 yield, 而不是 c.read().valueOrNull (流未启动时是 null)
+      final fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
       expect(fetched, isNotNull);
       expect(fetched!.amount, 10.0);
+    });
+
+    // ISSUE-042 回归测试: update 后 expenseByIdProvider 立刻反映新值
+    // 原 bug: Provider.family + ref.watch(no-op) 不能响应 box 变化,
+    // 导致编辑费用后详情页仍显示旧值
+    test('ISSUE-042: update 后 expenseByIdProvider 立刻返回新值', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      final notifier = c.read(expenseNotifierProvider.notifier);
+
+      // 1. 创建
+      final r1 = await notifier.create(
+        tripId: 't1',
+        payerId: 'm1',
+        amount: 10,
+        category: ExpenseCategory.food,
+        splitRuleJson: '{"type":"equal"}',
+      );
+
+      // 2. 第一次读
+      var fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
+      expect(fetched!.amount, 10.0);
+
+      // 3. update 改 amount
+      await notifier.update(r1.expense.id, amount: 99.5);
+
+      // 4. 关键验证: 立刻再读 (不等手动 invalidate) 应得到新值
+      // StreamProvider 会响应 box.watch() 触发新 yield
+      fetched = await c
+          .read(expenseByIdProvider(r1.expense.id).future)
+          .timeout(const Duration(seconds: 1));
+      expect(fetched!.amount, 99.5, reason: 'ISSUE-042: update 后应立即看到新值');
+    });
+
+    // ISSUE-042 回归测试: 改 splitRuleJson 后立刻反映
+    test('ISSUE-042: update splitRuleJson 后立刻反映', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      final notifier = c.read(expenseNotifierProvider.notifier);
+
+      final r1 = await notifier.create(
+        tripId: 't1',
+        payerId: 'm1',
+        amount: 100,
+        category: ExpenseCategory.food,
+        splitRuleJson: '{"type":"equal"}',
+      );
+
+      var fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
+      expect(fetched!.splitRuleJson, '{"type":"equal"}');
+
+      await notifier.update(
+        r1.expense.id,
+        splitRuleJson: '{"type":"ratio","values":{"m1":0.6,"m2":0.4}}',
+      );
+
+      fetched = await c
+          .read(expenseByIdProvider(r1.expense.id).future)
+          .timeout(const Duration(seconds: 1));
+      expect(fetched!.splitRuleJson,
+          '{"type":"ratio","values":{"m1":0.6,"m2":0.4}}',
+          reason: 'ISSUE-042: 改 splitRuleJson 后应立即看到新值');
     });
   });
 }

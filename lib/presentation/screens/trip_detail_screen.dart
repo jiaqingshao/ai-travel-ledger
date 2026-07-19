@@ -23,7 +23,18 @@ class TripDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trip = ref.watch(tripByIdProvider(tripId));
+    // ISSUE-042: tripByIdProvider 改为 StreamProvider.autoDispose.family
+    final tripAsync = ref.watch(tripByIdProvider(tripId));
+    final trip = tripAsync.maybeWhen(
+      data: (t) => t,
+      orElse: () => null,
+    );
+    if (tripAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('旅程详情')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     if (trip == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('旅程详情')),
@@ -61,6 +72,7 @@ class TripDetailScreen extends ConsumerWidget {
                   builder: (_) => TripEditScreen(tripId: tripId),
                 ),
               );
+              // ISSUE-042: tripByIdProvider 现在是 StreamProvider, invalidate 仍兼容
               if (updated == true) ref.invalidate(tripByIdProvider(tripId));
             },
           ),

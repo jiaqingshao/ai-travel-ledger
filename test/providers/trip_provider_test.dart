@@ -63,7 +63,8 @@ void main() {
     membersBox = await Hive.openBox<Member>('members_$ts');
     groupsBox = await Hive.openBox<TripGroup>('groups_$ts');
     expensesBox = await Hive.openBox<Expense>('expenses_$ts');
-    transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records_$ts');
+    transferRecordsBox =
+        await Hive.openBox<TransferRecord>('transfer_records_$ts');
     appSettingsBox = await Hive.openBox<dynamic>('app_settings_$ts');
     attachmentsBox = await Hive.openBox<Attachment>('attachments_$ts');
   });
@@ -121,7 +122,9 @@ void main() {
     );
     expect(trip.name, '测试旅程');
     expect(tripsBox.get(trip.id), isNotNull);
-    expect(c.read(tripByIdProvider(trip.id))?.name, '测试旅程');
+    // ISSUE-042: tripByIdProvider 现在是 StreamProvider, 用 .future 等首次 yield
+    final fetched = await c.read(tripByIdProvider(trip.id).future);
+    expect(fetched?.name, '测试旅程');
   });
 
   test('TripNotifier.archive / unarchive 改变 listActive/Archived', () async {

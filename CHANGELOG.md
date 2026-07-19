@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes (Bug 修复)
+- **ISSUE-042**: Provider.family 缓存导致编辑不生效 (M-4 → S-26 升级) (2026-07-20)
+  - 修 `expenseByIdProvider` / `tripByIdProvider` / `membersByGroupProvider` 3 个 Provider
+  - 从 `Provider.family` + `ref.watch(no-op)` 改为 `StreamProvider.autoDispose.family` + `repo.watch()`
+  - UI 适配 `AsyncValue` (expense_detail / trip_detail / trip_edit)
+  - 加 2 个回归测试 (update 后立刻返回新值)
+  - 同根因影响: 改金额/类别/描述/附件不生效, 多设备同步不响应, 热重载不刷新详情页
+
 ### 📋 Decisions (决策记录)
 - **ADR-004**: PRD v0.3 三个 P0 功能（E-008 语音记账 / E-009 重复费用 / E-010 旅程统计）**暂缓至 V1.1 候选**（2026-07-15）。详见 [`docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md`](docs/02-architecture/04-adr/ADR-004-prd-v0.3-p0-defer.md)
 - **ADR-005**: 发布路线改为**国内 Android only**（2026-07-15）。详见 [`docs/02-architecture/04-adr/ADR-005-android-cn-only.md`](docs/02-architecture/04-adr/ADR-005-android-cn-only.md)

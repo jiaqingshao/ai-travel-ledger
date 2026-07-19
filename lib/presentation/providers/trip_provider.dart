@@ -41,12 +41,17 @@ final archivedTripsProvider =
   }
 });
 
-/// 按 id 取单个旅程（同步取 Box 值）
-final tripByIdProvider = Provider.family<Trip?, String>((ref, id) {
+/// 按 id 取单个旅程（响应式：订阅 box.watch() 自动重建）
+///
+/// ISSUE-042 修复: 同 expenseByIdProvider 根因, 原版 Provider.family + ref.watch(no-op)
+/// 不能响应 box 变更, 导致编辑 trip 后详情页仍显示旧值.
+final tripByIdProvider =
+    StreamProvider.autoDispose.family<Trip?, String>((ref, id) async* {
   final repo = ref.watch(tripRepositoryProvider);
-  // 订阅 box 变更以触发重建
-  ref.watch(tripRepositoryProvider);
-  return repo.getById(id);
+  yield repo.getById(id);
+  await for (final _ in repo.watch()) {
+    yield repo.getById(id);
+  }
 });
 
 /// 旅程操作 Notifier（CRUD）
