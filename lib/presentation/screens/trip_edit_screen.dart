@@ -180,6 +180,8 @@ class _TripEditScreenState extends ConsumerState<TripEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('已保存')),
         );
+        // ISSUE-042 免底: 强制 invalidate
+        ref.invalidate(tripByIdProvider(widget.tripId));
         Navigator.pop(context, true);
       }
     } catch (e) {

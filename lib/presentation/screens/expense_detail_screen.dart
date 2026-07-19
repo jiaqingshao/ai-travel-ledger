@@ -583,6 +583,9 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
                 .map((a) => a.url)
                 .toList(),
           );
+      // ISSUE-042 免底: 强制 invalidate 让所有 watch 立刻重新订阅
+      // (StreamProvider + box.watch() 可能有时序, 双重保证)
+      ref.invalidate(expenseByIdProvider(e.id));
       if (mounted) {
         _snack('已保存');
         setState(() => _editing = false);
