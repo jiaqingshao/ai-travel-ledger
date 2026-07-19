@@ -491,9 +491,10 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
   /// ISSUE-040 修复: 是否有成员能接收焦点 (有成员且未全填)
   bool get _canGoNextSpecific {
     if (widget.members.isEmpty) return false;
-    if (_focusedSpecificMemberId == null) return true; // 初始无焦点 → 可跳第一个
+    final focused = _focusedSpecificMemberId;
+    if (focused == null) return true; // 初始无焦点 → 可跳第一个
     final memberIds = widget.members.map((m) => m.id).toList();
-    final idx = memberIds.indexOf(_focusedSpecificMemberId);
+    final idx = memberIds.indexOf(focused);
     return idx >= 0 && idx < memberIds.length - 1;
   }
 
@@ -501,9 +502,9 @@ class SplitTypeSelectorState extends ConsumerState<SplitTypeSelector> {
   void _goToNextSpecificMember() {
     final memberIds = widget.members.map((m) => m.id).toList();
     if (memberIds.isEmpty) return;
-    final currentIdx = _focusedSpecificMemberId == null
-        ? -1
-        : memberIds.indexOf(_focusedSpecificMemberId);
+    // 本地复制避免 non-final 字段可空提升失败
+    final focused = _focusedSpecificMemberId;
+    final currentIdx = focused == null ? -1 : memberIds.indexOf(focused);
     final nextIdx = currentIdx + 1;
     if (nextIdx >= memberIds.length) return; // 已是最后
     final nextMemberId = memberIds[nextIdx];
