@@ -41,17 +41,15 @@ final archivedTripsProvider =
   }
 });
 
-/// 按 id 取单个旅程（响应式：订阅 box.watch() 自动重建）
+/// 按 id 取单个旅程（同步读 Hive）
 ///
-/// ISSUE-042 修复: 同 expenseByIdProvider 根因, 原版 Provider.family + ref.watch(no-op)
-/// 不能响应 box 变更, 导致编辑 trip 后详情页仍显示旧值.
-final tripByIdProvider =
-    StreamProvider.autoDispose.family<Trip?, String>((ref, id) async* {
+/// ISSUE-042 修复: 保留 Provider.family 同步读 Hive (无 loading 状态),
+/// 靠调用方 ref.invalidate(tripByIdProvider) 手动重建.
+///
+/// 原因同 expenseByIdProvider: 避免 StreamProvider.autoDispose 的中间 loading 状态.
+final tripByIdProvider = Provider.family<Trip?, String>((ref, id) {
   final repo = ref.watch(tripRepositoryProvider);
-  yield repo.getById(id);
-  await for (final _ in repo.watch()) {
-    yield repo.getById(id);
-  }
+  return repo.getById(id);
 });
 
 /// 旅程操作 Notifier（CRUD）

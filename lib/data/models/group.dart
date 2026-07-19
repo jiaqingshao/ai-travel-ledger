@@ -64,7 +64,7 @@ class TripGroup extends HiveObject {
   GroupType groupType;
 
   @HiveField(4)
-  String? color;  // #RRGGBB
+  String? color; // #RRGGBB
 
   @HiveField(5)
   DateTime createdAt;

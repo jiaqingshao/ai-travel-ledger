@@ -313,22 +313,20 @@ void main() {
         category: ExpenseCategory.food,
         splitRuleJson: '{}',
       );
-      // ISSUE-042: expenseByIdProvider 现在是 StreamProvider.autoDispose.family
-      // 用 .future 等待第一次 yield, 而不是 c.read().valueOrNull (流未启动时是 null)
-      final fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
+      // ISSUE-042 v2: expenseByIdProvider 恢复 Provider.family 同步读 Hive
+      // ref.read 拿 Expense? 直接
+      final fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
       expect(fetched, isNotNull);
       expect(fetched!.amount, 10.0);
     });
 
-    // ISSUE-042 回归测试: update 后 expenseByIdProvider 立刻反映新值
-    // 原 bug: Provider.family + ref.watch(no-op) 不能响应 box 变化,
-    // 导致编辑费用后详情页仍显示旧值
-    test('ISSUE-042: update 后 expenseByIdProvider 立刻返回新值', () async {
+    // ISSUE-042 回归测试: invalidate 后 expenseByIdProvider 立刻反映新值
+    // (Provider.family 不响应 box 写入, 必须靠调用方 invalidate)
+    test('ISSUE-042: invalidate 后 expenseByIdProvider 立刻返回新值', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
       final notifier = c.read(expenseNotifierProvider.notifier);
 
-      // 1. 创建
       final r1 = await notifier.create(
         tripId: 't1',
         payerId: 'm1',
@@ -337,23 +335,24 @@ void main() {
         splitRuleJson: '{"type":"equal"}',
       );
 
-      // 2. 第一次读
-      var fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
+      Expense? fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
       expect(fetched!.amount, 10.0);
 
-      // 3. update 改 amount
+      // 1. update 改 amount
       await notifier.update(r1.expense.id, amount: 99.5);
 
-      // 4. 关键验证: 立刻再读 (不等手动 invalidate) 应得到新值
-      // StreamProvider 会响应 box.watch() 触发新 yield
-      fetched = await c
-          .read(expenseByIdProvider(r1.expense.id).future)
-          .timeout(const Duration(seconds: 1));
-      expect(fetched!.amount, 99.5, reason: 'ISSUE-042: update 后应立即看到新值');
+      // 2. 关键: 不 invalidate 直接读, 应该拿到旧值 (Provider.family 行为)
+      fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
+      expect(fetched!.amount, 10.0, reason: '未 invalidate 应该是旧值 (预期)');
+
+      // 3. invalidate 后再读, 拿到新值
+      c.invalidate(expenseByIdProvider(r1.expense.id));
+      fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
+      expect(fetched!.amount, 99.5, reason: 'ISSUE-042: invalidate 后应立即看到新值');
     });
 
-    // ISSUE-042 回归测试: 改 splitRuleJson 后立刻反映
-    test('ISSUE-042: update splitRuleJson 后立刻反映', () async {
+    // ISSUE-042: 完整流程 - create → invalidate → 读
+    test('ISSUE-042: create + invalidate 后立刻看到', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
       final notifier = c.read(expenseNotifierProvider.notifier);
@@ -366,20 +365,18 @@ void main() {
         splitRuleJson: '{"type":"equal"}',
       );
 
-      var fetched = await c.read(expenseByIdProvider(r1.expense.id).future);
-      expect(fetched!.splitRuleJson, '{"type":"equal"}');
+      // create 后 Provider 不知道, invalidate 后才能看到
+      c.invalidate(expenseByIdProvider(r1.expense.id));
+      Expense? fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
+      expect(fetched, isNotNull);
+      expect(fetched!.amount, 100.0);
 
-      await notifier.update(
-        r1.expense.id,
-        splitRuleJson: '{"type":"ratio","values":{"m1":0.6,"m2":0.4}}',
-      );
-
-      fetched = await c
-          .read(expenseByIdProvider(r1.expense.id).future)
-          .timeout(const Duration(seconds: 1));
-      expect(fetched!.splitRuleJson,
-          '{"type":"ratio","values":{"m1":0.6,"m2":0.4}}',
-          reason: 'ISSUE-042: 改 splitRuleJson 后应立即看到新值');
+      // update category
+      await notifier.update(r1.expense.id, category: ExpenseCategory.transport);
+      c.invalidate(expenseByIdProvider(r1.expense.id));
+      fetched = c.read<Expense?>(expenseByIdProvider(r1.expense.id));
+      expect(fetched!.category, ExpenseCategory.transport,
+          reason: 'ISSUE-042: 改 category 后 invalidate 应立即看到新值');
     });
   });
 }

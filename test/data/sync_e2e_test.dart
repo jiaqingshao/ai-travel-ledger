@@ -39,20 +39,31 @@ void main() {
     if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(TripGroupAdapter());
     if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(ExpenseAdapter());
     if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(GroupTypeAdapter());
-    if (!Hive.isAdapterRegistered(11)) Hive.registerAdapter(ExpenseCategoryAdapter());
-    if (!Hive.isAdapterRegistered(12)) Hive.registerAdapter(SyncStatusAdapter());
-    if (!Hive.isAdapterRegistered(13)) Hive.registerAdapter(MemberRoleAdapter());
-    if (!Hive.isAdapterRegistered(14)) Hive.registerAdapter(TransferRecordAdapter());
+    if (!Hive.isAdapterRegistered(11))
+      Hive.registerAdapter(ExpenseCategoryAdapter());
+    if (!Hive.isAdapterRegistered(12))
+      Hive.registerAdapter(SyncStatusAdapter());
+    if (!Hive.isAdapterRegistered(13))
+      Hive.registerAdapter(MemberRoleAdapter());
+    if (!Hive.isAdapterRegistered(14))
+      Hive.registerAdapter(TransferRecordAdapter());
   });
 
   setUp(() async {
-    tripsBox = await Hive.openBox<Trip>('trips_${DateTime.now().microsecondsSinceEpoch}');
-    membersBox = await Hive.openBox<Member>('members_${DateTime.now().microsecondsSinceEpoch}');
-    groupsBox = await Hive.openBox<TripGroup>('groups_${DateTime.now().microsecondsSinceEpoch}');
-    expensesBox = await Hive.openBox<Expense>('expenses_${DateTime.now().microsecondsSinceEpoch}');
-    transferBox = await Hive.openBox<TransferRecord>('transfers_${DateTime.now().microsecondsSinceEpoch}');
-    appSettingsBox = await Hive.openBox<dynamic>('app_settings_${DateTime.now().microsecondsSinceEpoch}');
-    attachmentsBox = await Hive.openBox<Attachment>('attachments_${DateTime.now().microsecondsSinceEpoch}');
+    tripsBox = await Hive.openBox<Trip>(
+        'trips_${DateTime.now().microsecondsSinceEpoch}');
+    membersBox = await Hive.openBox<Member>(
+        'members_${DateTime.now().microsecondsSinceEpoch}');
+    groupsBox = await Hive.openBox<TripGroup>(
+        'groups_${DateTime.now().microsecondsSinceEpoch}');
+    expensesBox = await Hive.openBox<Expense>(
+        'expenses_${DateTime.now().microsecondsSinceEpoch}');
+    transferBox = await Hive.openBox<TransferRecord>(
+        'transfers_${DateTime.now().microsecondsSinceEpoch}');
+    appSettingsBox = await Hive.openBox<dynamic>(
+        'app_settings_${DateTime.now().microsecondsSinceEpoch}');
+    attachmentsBox = await Hive.openBox<Attachment>(
+        'attachments_${DateTime.now().microsecondsSinceEpoch}');
     boxes = HiveBoxes(
       trips: tripsBox,
       members: membersBox,
@@ -205,7 +216,7 @@ void main() {
       status: TripStatus.preparing,
       createdBy: 'user-001',
       createdAt: DateTime(2026, 5, 1),
-      updatedAt: DateTime(2026, 5, 1, 10, 0),  // T1
+      updatedAt: DateTime(2026, 5, 1, 10, 0), // T1
     );
     await tripsBox.put(trip.id, trip);
 
@@ -219,7 +230,7 @@ void main() {
       'base_currency': 'CNY',
       'status': 'ongoing',
       'created_by': 'user-001',
-      'updated_at': DateTime(2026, 5, 1, 12, 0).toIso8601String(),  // T2
+      'updated_at': DateTime(2026, 5, 1, 12, 0).toIso8601String(), // T2
     };
     mock.remoteTrips = [cloudTrip];
 

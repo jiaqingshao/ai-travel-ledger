@@ -165,9 +165,8 @@ class _AISettingsScreenState extends ConsumerState<AISettingsScreen> {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: model.isPrimary
-              ? const Color(0xFF2E7D32)
-              : Colors.grey[300],
+          backgroundColor:
+              model.isPrimary ? const Color(0xFF2E7D32) : Colors.grey[300],
           child: Icon(
             model.isLocal ? Icons.computer : Icons.cloud,
             color: model.isPrimary ? Colors.white : Colors.black54,
@@ -193,12 +192,13 @@ class _AISettingsScreenState extends ConsumerState<AISettingsScreen> {
               ),
           ],
         ),
-        subtitle: Text(model.description ?? '',
-            style: const TextStyle(fontSize: 12)),
+        subtitle:
+            Text(model.description ?? '', style: const TextStyle(fontSize: 12)),
         trailing: model.costPer1kTokens > 0
             ? Text('\$${model.costPer1kTokens.toStringAsFixed(4)}/1k',
                 style: const TextStyle(fontSize: 11, color: Colors.grey))
-            : const Text('免费', style: TextStyle(fontSize: 11, color: Colors.green)),
+            : const Text('免费',
+                style: TextStyle(fontSize: 11, color: Colors.green)),
       ),
     );
   }

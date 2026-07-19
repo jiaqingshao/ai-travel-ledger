@@ -239,7 +239,8 @@ class SyncEngine {
     // 拉取我有权限的 trips（通过 trip_collaborators）
     final tripsResponse = await client
         .from('trips')
-        .select('id, name, destination, start_date, end_date, base_currency, status')
+        .select(
+            'id, name, destination, start_date, end_date, base_currency, status')
         .or('created_by.eq.$userId');
 
     for (final row in tripsResponse as List) {
@@ -296,8 +297,6 @@ class SyncEngine {
     await _syncStatusController.close();
   }
 }
-
-
 
 /// 同步状态
 enum SyncState { idle, syncing, error }

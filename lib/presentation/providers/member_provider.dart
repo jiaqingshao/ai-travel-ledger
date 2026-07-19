@@ -20,17 +20,15 @@ final membersByTripProvider = StreamProvider.autoDispose
   }
 });
 
-/// 指定旅程 + 组 的成员列表（响应式：订阅 box.watch() 自动重建）
+/// 指定旅程 + 组 的成员列表（同步读 Hive）
 ///
-/// ISSUE-042 修复: 同 expenseByIdProvider 根因.
-final membersByGroupProvider = StreamProvider.autoDispose
-    .family<List<Member>, ({String tripId, String? groupId})>(
-        (ref, args) async* {
+/// ISSUE-042 修复: 保留 Provider.family 同步读 Hive (无 loading 状态),
+/// 靠调用方 ref.invalidate(membersByGroupProvider) 手动重建.
+final membersByGroupProvider =
+    Provider.family<List<Member>, ({String tripId, String? groupId})>(
+        (ref, args) {
   final repo = ref.watch(memberRepositoryProvider);
-  yield repo.listByGroup(args.tripId, args.groupId);
-  await for (final _ in repo.watch()) {
-    yield repo.listByGroup(args.tripId, args.groupId);
-  }
+  return repo.listByGroup(args.tripId, args.groupId);
 });
 
 /// 成员操作 Notifier

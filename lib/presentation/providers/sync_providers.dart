@@ -65,7 +65,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
     // 订阅 auth 变化 - 保存 subscription 用于 dispose 取消
-    _authSubscription = SupabaseService.instance.authStateChanges.listen((authState) {
+    _authSubscription =
+        SupabaseService.instance.authStateChanges.listen((authState) {
       final event = authState.event;
       if (event == AuthChangeEvent.signedIn) {
         final user = authState.session?.user;
@@ -80,7 +81,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     });
   }
 
-  Future<String?> signIn({required String email, required String password}) async {
+  Future<String?> signIn(
+      {required String email, required String password}) async {
     try {
       final response = await SupabaseService.instance.signIn(
         email: email,

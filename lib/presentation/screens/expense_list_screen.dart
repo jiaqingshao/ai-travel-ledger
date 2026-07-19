@@ -55,8 +55,7 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
           const Divider(height: 1),
           Expanded(
             child: expensesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('加载失败：$e')),
               data: (list) {
                 final filtered = _filter == null
@@ -254,10 +253,9 @@ class _ExpenseTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Theme.of(context)
-            .colorScheme
-            .primaryContainer,
-        child: Text(expense.category.icon, style: const TextStyle(fontSize: 20)),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child:
+            Text(expense.category.icon, style: const TextStyle(fontSize: 20)),
       ),
       title: Text(
         expense.description?.isNotEmpty == true

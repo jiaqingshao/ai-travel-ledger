@@ -98,9 +98,10 @@ enum SyncStatus {
 /// 类型：equal | ratio | shares | specific
 /// 参与者：member_id 或 group_id
 class SplitRule {
-  final String type;  // equal | ratio | shares | specific
-  final List<dynamic> participants;  // [{type: 'group', id: ...} 或 {type: 'member', id: ...}]
-  final Map<String, double> values;  // 比例/份数/固定金额
+  final String type; // equal | ratio | shares | specific
+  final List<dynamic>
+      participants; // [{type: 'group', id: ...} 或 {type: 'member', id: ...}]
+  final Map<String, double> values; // 比例/份数/固定金额
 
   const SplitRule({
     required this.type,
@@ -193,16 +194,16 @@ class Expense extends HiveObject {
   DateTime updatedAt;
 
   @HiveField(10)
-  String splitRuleJson;  // 存 SplitRule 的 JSON
+  String splitRuleJson; // 存 SplitRule 的 JSON
 
   @HiveField(11)
-  List<String> attachments;  // 附件 URL 列表
+  List<String> attachments; // 附件 URL 列表
 
   @HiveField(12)
   SyncStatus syncStatus;
 
   @HiveField(13)
-  DateTime? deletedAt;  // 软删除
+  DateTime? deletedAt; // 软删除
 
   Expense({
     required this.id,

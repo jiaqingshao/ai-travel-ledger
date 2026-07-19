@@ -363,10 +363,8 @@ class SettlementEngine {
 
     // 4a) 实际组（按原始顺序）
     for (final group in groups) {
-      final memberIds = members
-          .where((m) => m.groupId == group.id)
-          .map((m) => m.id)
-          .toList();
+      final memberIds =
+          members.where((m) => m.groupId == group.id).map((m) => m.id).toList();
       result.add(
         GroupSettlement(
           groupId: group.id,
@@ -379,10 +377,8 @@ class SettlementEngine {
     }
 
     // 4b) 未分组（仅当有未分组成员时出现）
-    final ungroupedMemberIds = members
-        .where((m) => m.groupId == null)
-        .map((m) => m.id)
-        .toList();
+    final ungroupedMemberIds =
+        members.where((m) => m.groupId == null).map((m) => m.id).toList();
     if (ungroupedMemberIds.isNotEmpty) {
       result.add(
         GroupSettlement(

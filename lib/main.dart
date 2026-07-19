@@ -52,7 +52,8 @@ Future<void> main() async {
   final membersBox = await Hive.openBox<Member>('members');
   final groupsBox = await Hive.openBox<TripGroup>('groups');
   final expensesBox = await Hive.openBox<Expense>('expenses');
-  final transferRecordsBox = await Hive.openBox<TransferRecord>('transfer_records');
+  final transferRecordsBox =
+      await Hive.openBox<TransferRecord>('transfer_records');
   final appSettingsBox = await Hive.openBox<dynamic>('app_settings');
   final attachmentsBox = await Hive.openBox<Attachment>('attachments');
 
@@ -106,7 +107,8 @@ Future<void> main() async {
       SupabaseService.instance.currentUserId != null) {
     syncEngine = SyncEngine(boxes: boxes);
     syncEngine.startAutoSync();
-    debugPrint('✅ [Sync] 已启动, userId=${SupabaseService.instance.currentUserId}');
+    debugPrint(
+        '✅ [Sync] 已启动, userId=${SupabaseService.instance.currentUserId}');
   } else {
     debugPrint('ℹ️ [Sync] 未启动 (本地模式或未登录)');
   }
@@ -115,7 +117,8 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         hiveBoxesProvider.overrideWithValue(boxes),
-        if (syncEngine != null) syncEngineProvider.overrideWithValue(syncEngine),
+        if (syncEngine != null)
+          syncEngineProvider.overrideWithValue(syncEngine),
       ],
       child: AITravelLedgerApp(boxes: boxes),
     ),

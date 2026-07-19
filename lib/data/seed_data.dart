@@ -124,7 +124,7 @@ class DemoSeed {
     for (final e in expenses) {
       boxes.expenses.put(e.id, e);
     }
-    
+
     // ========== 场景2: 家庭自驾游 (周末 2 日) ==========
     final trip2 = Trip(
       id: 'trip-demo-002',
@@ -146,22 +146,85 @@ class DemoSeed {
       color: '#10B981',
       createdAt: now,
     );
-    final dad = Member(id: 'member-demo-201', tripId: trip2.id, nickname: '爸爸', avatarColor: '#3B82F6', role: MemberRole.organizer, groupId: g2.id, joinedAt: now);
-    final mom = Member(id: 'member-demo-202', tripId: trip2.id, nickname: '妈妈', avatarColor: '#EC4899', role: MemberRole.member, groupId: g2.id, joinedAt: now);
-    final son = Member(id: 'member-demo-203', tripId: trip2.id, nickname: '小明', avatarColor: '#F59E0B', role: MemberRole.member, groupId: g2.id, joinedAt: now);
+    final dad = Member(
+        id: 'member-demo-201',
+        tripId: trip2.id,
+        nickname: '爸爸',
+        avatarColor: '#3B82F6',
+        role: MemberRole.organizer,
+        groupId: g2.id,
+        joinedAt: now);
+    final mom = Member(
+        id: 'member-demo-202',
+        tripId: trip2.id,
+        nickname: '妈妈',
+        avatarColor: '#EC4899',
+        role: MemberRole.member,
+        groupId: g2.id,
+        joinedAt: now);
+    final son = Member(
+        id: 'member-demo-203',
+        tripId: trip2.id,
+        nickname: '小明',
+        avatarColor: '#F59E0B',
+        role: MemberRole.member,
+        groupId: g2.id,
+        joinedAt: now);
     final trip2Expenses = <Expense>[
-      Expense(id: 'exp-002-001', tripId: trip2.id, payerId: dad.id, amount: 320.0, category: ExpenseCategory.transport, description: '油费 + 过路费', occurredAt: now.subtract(const Duration(days: 30)), createdAt: now, updatedAt: now, splitRuleJson: equalGroup(g2.id)),
-      Expense(id: 'exp-002-002', tripId: trip2.id, payerId: mom.id, amount: 480.0, category: ExpenseCategory.food, description: '鱼头餐饮', occurredAt: now.subtract(const Duration(days: 30)), createdAt: now, updatedAt: now, splitRuleJson: equalGroup(g2.id)),
-      Expense(id: 'exp-002-003', tripId: trip2.id, payerId: dad.id, amount: 680.0, category: ExpenseCategory.lodging, description: '准四酒店 1 晚', occurredAt: now.subtract(const Duration(days: 30)), createdAt: now, updatedAt: now, splitRuleJson: equalGroup(g2.id)),
-      Expense(id: 'exp-002-004', tripId: trip2.id, payerId: son.id, amount: 240.0, category: ExpenseCategory.ticket, description: '千岛湖门票 3 张', occurredAt: now.subtract(const Duration(days: 30)), createdAt: now, updatedAt: now, splitRuleJson: equalGroup(g2.id)),
+      Expense(
+          id: 'exp-002-001',
+          tripId: trip2.id,
+          payerId: dad.id,
+          amount: 320.0,
+          category: ExpenseCategory.transport,
+          description: '油费 + 过路费',
+          occurredAt: now.subtract(const Duration(days: 30)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalGroup(g2.id)),
+      Expense(
+          id: 'exp-002-002',
+          tripId: trip2.id,
+          payerId: mom.id,
+          amount: 480.0,
+          category: ExpenseCategory.food,
+          description: '鱼头餐饮',
+          occurredAt: now.subtract(const Duration(days: 30)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalGroup(g2.id)),
+      Expense(
+          id: 'exp-002-003',
+          tripId: trip2.id,
+          payerId: dad.id,
+          amount: 680.0,
+          category: ExpenseCategory.lodging,
+          description: '准四酒店 1 晚',
+          occurredAt: now.subtract(const Duration(days: 30)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalGroup(g2.id)),
+      Expense(
+          id: 'exp-002-004',
+          tripId: trip2.id,
+          payerId: son.id,
+          amount: 240.0,
+          category: ExpenseCategory.ticket,
+          description: '千岛湖门票 3 张',
+          occurredAt: now.subtract(const Duration(days: 30)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalGroup(g2.id)),
     ];
     boxes.trips.put(trip2.id, trip2);
     boxes.groups.put(g2.id, g2);
     boxes.members.put(dad.id, dad);
     boxes.members.put(mom.id, mom);
     boxes.members.put(son.id, son);
-    for (final e in trip2Expenses) { boxes.expenses.put(e.id, e); }
-    
+    for (final e in trip2Expenses) {
+      boxes.expenses.put(e.id, e);
+    }
+
     // ========== 场景3: 公司团建 (按部门分组 + 部分参与) ==========
     final trip3 = Trip(
       id: 'trip-demo-003',
@@ -175,15 +238,75 @@ class DemoSeed {
       createdAt: now,
       updatedAt: now,
     );
-    final engGroup = TripGroup(id: 'group-demo-003-eng', tripId: trip3.id, name: '研发部', groupType: GroupType.company, color: '#8B5CF6', createdAt: now);
-    final saleGroup = TripGroup(id: 'group-demo-003-sale', tripId: trip3.id, name: '销售部', groupType: GroupType.company, color: '#EF4444', createdAt: now);
-    final lead = Member(id: 'member-demo-301', tripId: trip3.id, nickname: 'Leader', avatarColor: '#8B5CF6', role: MemberRole.organizer, groupId: engGroup.id, joinedAt: now);
-    final dev1 = Member(id: 'member-demo-302', tripId: trip3.id, nickname: '小陈', avatarColor: '#3B82F6', role: MemberRole.member, groupId: engGroup.id, joinedAt: now);
-    final dev2 = Member(id: 'member-demo-303', tripId: trip3.id, nickname: '小赵', avatarColor: '#10B981', role: MemberRole.member, groupId: engGroup.id, joinedAt: now);
-    final sale1 = Member(id: 'member-demo-304', tripId: trip3.id, nickname: '小孙', avatarColor: '#EF4444', role: MemberRole.member, groupId: saleGroup.id, joinedAt: now);
+    final engGroup = TripGroup(
+        id: 'group-demo-003-eng',
+        tripId: trip3.id,
+        name: '研发部',
+        groupType: GroupType.company,
+        color: '#8B5CF6',
+        createdAt: now);
+    final saleGroup = TripGroup(
+        id: 'group-demo-003-sale',
+        tripId: trip3.id,
+        name: '销售部',
+        groupType: GroupType.company,
+        color: '#EF4444',
+        createdAt: now);
+    final lead = Member(
+        id: 'member-demo-301',
+        tripId: trip3.id,
+        nickname: 'Leader',
+        avatarColor: '#8B5CF6',
+        role: MemberRole.organizer,
+        groupId: engGroup.id,
+        joinedAt: now);
+    final dev1 = Member(
+        id: 'member-demo-302',
+        tripId: trip3.id,
+        nickname: '小陈',
+        avatarColor: '#3B82F6',
+        role: MemberRole.member,
+        groupId: engGroup.id,
+        joinedAt: now);
+    final dev2 = Member(
+        id: 'member-demo-303',
+        tripId: trip3.id,
+        nickname: '小赵',
+        avatarColor: '#10B981',
+        role: MemberRole.member,
+        groupId: engGroup.id,
+        joinedAt: now);
+    final sale1 = Member(
+        id: 'member-demo-304',
+        tripId: trip3.id,
+        nickname: '小孙',
+        avatarColor: '#EF4444',
+        role: MemberRole.member,
+        groupId: saleGroup.id,
+        joinedAt: now);
     final trip3Expenses = <Expense>[
-      Expense(id: 'exp-003-001', tripId: trip3.id, payerId: lead.id, amount: 1280.0, category: ExpenseCategory.lodging, description: '团建民宿订金 (人均 320, 全员}', occurredAt: now.subtract(const Duration(days: 2)), createdAt: now, updatedAt: now, splitRuleJson: equalMembers([lead.id, dev1.id, dev2.id, sale1.id])),
-      Expense(id: 'exp-003-002', tripId: trip3.id, payerId: dev1.id, amount: 96.0, category: ExpenseCategory.transport, description: '接驳车拼车', occurredAt: now.subtract(const Duration(days: 1)), createdAt: now, updatedAt: now, splitRuleJson: equalGroup(engGroup.id)),
+      Expense(
+          id: 'exp-003-001',
+          tripId: trip3.id,
+          payerId: lead.id,
+          amount: 1280.0,
+          category: ExpenseCategory.lodging,
+          description: '团建民宿订金 (人均 320, 全员}',
+          occurredAt: now.subtract(const Duration(days: 2)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalMembers([lead.id, dev1.id, dev2.id, sale1.id])),
+      Expense(
+          id: 'exp-003-002',
+          tripId: trip3.id,
+          payerId: dev1.id,
+          amount: 96.0,
+          category: ExpenseCategory.transport,
+          description: '接驳车拼车',
+          occurredAt: now.subtract(const Duration(days: 1)),
+          createdAt: now,
+          updatedAt: now,
+          splitRuleJson: equalGroup(engGroup.id)),
     ];
     boxes.trips.put(trip3.id, trip3);
     boxes.groups.put(engGroup.id, engGroup);
@@ -192,15 +315,20 @@ class DemoSeed {
     boxes.members.put(dev1.id, dev1);
     boxes.members.put(dev2.id, dev2);
     boxes.members.put(sale1.id, sale1);
-    for (final e in trip3Expenses) { boxes.expenses.put(e.id, e); }
+    for (final e in trip3Expenses) {
+      boxes.expenses.put(e.id, e);
+    }
   }
 }
 
 String equalGroup(String groupId) {
-  return '{"type":"equal","participants":[{"type":"group","id":"' + groupId + '"}]}';
+  return '{"type":"equal","participants":[{"type":"group","id":"' +
+      groupId +
+      '"}]}';
 }
 
 String equalMembers(List<String> ids) {
-  final parts = ids.map((id) => '{"type":"member","id":"' + id + '"}').join(',');
+  final parts =
+      ids.map((id) => '{"type":"member","id":"' + id + '"}').join(',');
   return '{"type":"equal","participants":[' + parts + ']}';
 }

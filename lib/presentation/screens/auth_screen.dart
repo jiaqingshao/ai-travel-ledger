@@ -55,9 +55,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         : await notifier.signUp(
             email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,
-            displayName: _nameCtrl.text.trim().isEmpty
-                ? null
-                : _nameCtrl.text.trim(),
+            displayName:
+                _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
           );
 
     if (!mounted) return;
@@ -75,7 +74,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     // ISSUE-021: 增强错误提示 - 邮箱未验证提示
     if (!_isLogin && err.toLowerCase().contains('email not confirmed')) {
       setState(() {
-                _error = '✉️ 注册成功！\n请到邮箱中点击验证链接，\n然后返回本页登录。\n原错误：' + err;
+        _error = '✉️ 注册成功！\n请到邮箱中点击验证链接，\n然后返回本页登录。\n原错误：' + err;
       });
       return;
     }
@@ -96,8 +95,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.cloud_off, size: 72,
-                    color: theme.colorScheme.outline),
+                Icon(Icons.cloud_off,
+                    size: 72, color: theme.colorScheme.outline),
                 const SizedBox(height: 16),
                 Text(
                   '云端同步未配置',
@@ -142,8 +141,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 24),
-              Icon(Icons.cloud_sync, size: 64,
-                  color: theme.colorScheme.primary),
+              Icon(Icons.cloud_sync,
+                  size: 64, color: theme.colorScheme.primary),
               const SizedBox(height: 16),
               Text(
                 _isLogin ? '登录 AI 旅行账本' : '创建账号',

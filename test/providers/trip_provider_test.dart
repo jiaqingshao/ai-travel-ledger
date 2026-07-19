@@ -122,8 +122,8 @@ void main() {
     );
     expect(trip.name, '测试旅程');
     expect(tripsBox.get(trip.id), isNotNull);
-    // ISSUE-042: tripByIdProvider 现在是 StreamProvider, 用 .future 等首次 yield
-    final fetched = await c.read(tripByIdProvider(trip.id).future);
+    // ISSUE-042 v2: tripByIdProvider 恢复 Provider.family 同步读
+    final fetched = c.read(tripByIdProvider(trip.id));
     expect(fetched?.name, '测试旅程');
   });
 

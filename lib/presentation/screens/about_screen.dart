@@ -18,10 +18,13 @@ class AboutScreen extends StatelessWidget {
   // - 云端版可通过 --dart-define=APP_VERSION_NAME=vX.Y.Z 覆盖
   static const String _version = SupabaseConfig.appVersionName;
   // [PR-1 脱敏] 作者邮箱不再硬编码 - 请通过 GitHub Issues 联系
-  static const String _authorEmail = ''; // deprecated: 留空防编译错误, UI 已切换到 GitHub Issues
-  static const String _githubUrl = 'https://github.com/jiaqingshao/ai-travel-ledger/issues';
+  static const String _authorEmail =
+      ''; // deprecated: 留空防编译错误, UI 已切换到 GitHub Issues
+  static const String _githubUrl =
+      'https://github.com/jiaqingshao/ai-travel-ledger/issues';
   static const String _releaseDate = '2026-07-13';
-  static const String _description = '自驾游/团队游场景的智能记账与分摊工具。让多人 AA 结算从 30 分钟缩短到 30 秒。';
+  static const String _description =
+      '自驾游/团队游场景的智能记账与分摊工具。让多人 AA 结算从 30 分钟缩短到 30 秒。';
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +74,8 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(12),
@@ -111,7 +115,8 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, size: 18, color: theme.colorScheme.primary),
+                        Icon(Icons.info_outline,
+                            size: 18, color: theme.colorScheme.primary),
                         const SizedBox(width: 6),
                         Text('简介', style: theme.textTheme.titleSmall),
                       ],
@@ -155,7 +160,8 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.layers_outlined, size: 18, color: theme.colorScheme.primary),
+                        Icon(Icons.layers_outlined,
+                            size: 18, color: theme.colorScheme.primary),
                         const SizedBox(width: 6),
                         Text('技术栈', style: theme.textTheme.titleSmall),
                       ],
@@ -183,7 +189,8 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.favorite_outline, size: 18, color: theme.colorScheme.primary),
+                        Icon(Icons.favorite_outline,
+                            size: 18, color: theme.colorScheme.primary),
                         const SizedBox(width: 6),
                         Text('致谢', style: theme.textTheme.titleSmall),
                       ],
@@ -210,12 +217,14 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   Text(
                     '© 2026 AI 旅行账本 · 个人项目',
-                    style: TextStyle(fontSize: 12, color: theme.colorScheme.outline),
+                    style: TextStyle(
+                        fontSize: 12, color: theme.colorScheme.outline),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '由 MiniMax-M3 与开发者协作完成',
-                    style: TextStyle(fontSize: 11, color: theme.colorScheme.outline),
+                    style: TextStyle(
+                        fontSize: 11, color: theme.colorScheme.outline),
                   ),
                 ],
               ),
@@ -285,7 +294,8 @@ class _TechRow extends StatelessWidget {
             width: 80,
             child: Text(
               label,
-              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
+              style: TextStyle(
+                  fontSize: 12, color: Theme.of(context).colorScheme.outline),
             ),
           ),
           Expanded(

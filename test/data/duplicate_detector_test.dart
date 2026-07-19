@@ -122,8 +122,8 @@ void main() {
         makeExpense(id: 'me', occurredAt: DateTime(2026, 6, 1, 9)),
       ];
       final me = makeExpense(id: 'me', occurredAt: DateTime(2026, 6, 1, 20));
-      expect(DuplicateDetector.findDuplicate(pool, me, excludeId: 'me'),
-          isNull);
+      expect(
+          DuplicateDetector.findDuplicate(pool, me, excludeId: 'me'), isNull);
     });
 
     test('无任何匹配返回 null', () {

@@ -87,9 +87,8 @@ class ExpenseRepository {
   /// 列出某旅程下**未软删除**的费用，按 [Expense.occurredAt] 倒序
   List<Expense> listByTrip(String tripId, {bool includeDeleted = false}) {
     final all = _box.values.where((e) => e.tripId == tripId);
-    final filtered = includeDeleted
-        ? all
-        : all.where((e) => e.deletedAt == null);
+    final filtered =
+        includeDeleted ? all : all.where((e) => e.deletedAt == null);
     final list = filtered.toList()
       ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
     return list;
@@ -123,8 +122,7 @@ class ExpenseRepository {
 
   /// 某旅程下所有未删除费用的总金额
   double totalByTrip(String tripId) {
-    return listByTrip(tripId)
-        .fold<double>(0, (sum, e) => sum + e.amount);
+    return listByTrip(tripId).fold<double>(0, (sum, e) => sum + e.amount);
   }
 
   /// 某旅程下按类别分组的总金额
@@ -145,9 +143,7 @@ class ExpenseRepository {
 
   /// 某成员最近一次作为付款人创建的费用
   Expense? lastByPayer(String tripId, String payerId) {
-    final list = listByTrip(tripId)
-        .where((e) => e.payerId == payerId)
-        .toList();
+    final list = listByTrip(tripId).where((e) => e.payerId == payerId).toList();
     if (list.isEmpty) return null;
     return list.first; // 已按 occurredAt 倒序
   }
@@ -291,10 +287,8 @@ class ExpenseRepository {
 
   /// 物理删除某旅程下的所有费用（仅在测试 / 旅程硬删除时使用）
   Future<void> deleteAllByTrip(String tripId) async {
-    final ids = _box.values
-        .where((e) => e.tripId == tripId)
-        .map((e) => e.id)
-        .toList();
+    final ids =
+        _box.values.where((e) => e.tripId == tripId).map((e) => e.id).toList();
     for (final id in ids) {
       final e = _box.get(id);
       await _box.delete(id);

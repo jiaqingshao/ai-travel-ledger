@@ -78,8 +78,7 @@ void main() {
       expect(find.byType(AttachmentThumb), findsOneWidget);
     });
 
-    testWidgets('长按触发 onDelete (弹确认对话框 + 点击删除触发回调)',
-        (tester) async {
+    testWidgets('长按触发 onDelete (弹确认对话框 + 点击删除触发回调)', (tester) async {
       const a = Attachment(
         url: 'https://example.com/x.jpg',
         fileName: 'x.jpg',

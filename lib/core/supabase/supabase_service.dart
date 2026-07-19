@@ -101,7 +101,8 @@ class SupabaseService {
   /// - 关闭现有连接
   /// - 用新设置重连
   /// - 失败回退本地
-  Future<({bool success, String? error})> switchMode(AppSettings newSettings) async {
+  Future<({bool success, String? error})> switchMode(
+      AppSettings newSettings) async {
     await _disconnect();
     _activeSettings = newSettings;
     return await init(settings: newSettings);

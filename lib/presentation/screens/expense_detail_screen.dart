@@ -109,19 +109,9 @@ class _ExpenseDetailScreenState extends ConsumerState<ExpenseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ISSUE-042: expenseByIdProvider 改为 StreamProvider.autoDispose.family,
-    // 现在是 AsyncValue<Expense?>, 用 .when 处理 3 个状态
-    final expenseAsync = ref.watch(expenseByIdProvider(widget.expenseId));
-    final expense = expenseAsync.maybeWhen(
-      data: (e) => e,
-      orElse: () => null,
-    );
-    if (expenseAsync.isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('费用详情')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    // ISSUE-042 v2: 保留 Provider.family (同步读 Hive, 无 loading 中间态)
+    // 靠 _save 后 ref.invalidate 手动重建
+    final expense = ref.watch(expenseByIdProvider(widget.expenseId));
     if (expense == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('费用详情')),

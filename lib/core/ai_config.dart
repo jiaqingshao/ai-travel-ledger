@@ -19,12 +19,12 @@ const String kDefaultCloudQianwenBaseUrl =
 
 /// AI 模型类型枚举
 enum AIModelType {
-  cloudM3,        // 🆕 主力：MiniMax M3（云端）
-  localQwen36,    // 备力：Qwen3.6 35B（本地 LM Studio）
-  cloudDeepSeek,  // 备选：DeepSeek
-  cloudGlm4,      // 备选：智谱 GLM-4
-  cloudQianwen,   // 备选：通义千问
-  custom,         // 自定义
+  cloudM3, // 🆕 主力：MiniMax M3（云端）
+  localQwen36, // 备力：Qwen3.6 35B（本地 LM Studio）
+  cloudDeepSeek, // 备选：DeepSeek
+  cloudGlm4, // 备选：智谱 GLM-4
+  cloudQianwen, // 备选：通义千问
+  custom, // 自定义
 }
 
 /// AI 模型配置
@@ -60,11 +60,11 @@ class AIModelConfig {
       'CLOUD_M3_BASE_URL',
       defaultValue: kDefaultCloudM3BaseUrl,
     ),
-    apiKey: 'REPLACE_WITH_YOUR_M3_KEY',  // TODO: 填入你的 M3 API Key
+    apiKey: 'REPLACE_WITH_YOUR_M3_KEY', // TODO: 填入你的 M3 API Key
     modelName: 'MiniMax-M3',
     isLocal: false,
     description: '1M 上下文，多模态，编程能力强（已付费 coding plan）',
-    costPer1kTokens: 0.0015,  // 推介期价格 $0.30/$1.20 per 1M
+    costPer1kTokens: 0.0015, // 推介期价格 $0.30/$1.20 per 1M
     contextLength: 1000000,
   );
 
@@ -77,7 +77,7 @@ class AIModelConfig {
       'LOCAL_QWEN36_BASE_URL',
       defaultValue: kDefaultLocalQwen36BaseUrl,
     ),
-    apiKey: 'lm-studio',  // LM Studio 不校验 key
+    apiKey: 'lm-studio', // LM Studio 不校验 key
     modelName: 'qwen3.6-35b-a3b-apex-balanced',
     isLocal: true,
     description: '免费、离线、隐私安全（LM Studio）',
@@ -135,12 +135,12 @@ class AIModelConfig {
 
   /// 全部模型列表
   static List<AIModelConfig> get allModels => [
-    cloudM3,           // 🆕 主力
-    localQwen36,       // 备力
-    cloudDeepSeek,     // 备选
-    cloudGlm4,         // 备选
-    cloudQianwen,      // 备选
-  ];
+        cloudM3, // 🆕 主力
+        localQwen36, // 备力
+        cloudDeepSeek, // 备选
+        cloudGlm4, // 备选
+        cloudQianwen, // 备选
+      ];
 
   /// 是否主力模型
   bool get isPrimary => type == AIModelType.cloudM3;

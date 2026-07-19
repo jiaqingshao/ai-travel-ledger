@@ -51,7 +51,9 @@ class _TripListScreenState extends ConsumerState<TripListScreen> {
                 IconButton(
                   tooltip: auth.isSignedIn ? '已登录' : '云端同步/设置',
                   icon: Icon(
-                    auth.isSignedIn ? Icons.cloud_done : Icons.cloud_sync_outlined,
+                    auth.isSignedIn
+                        ? Icons.cloud_done
+                        : Icons.cloud_sync_outlined,
                     color: auth.isSignedIn ? Colors.green : null,
                   ),
                   onPressed: _openAuth,
@@ -554,7 +556,8 @@ class _TripCard extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (trip.destination != null && trip.destination!.isNotEmpty)
+                            if (trip.destination != null &&
+                                trip.destination!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Row(
@@ -812,7 +815,8 @@ class _EmptyTripsView extends StatelessWidget {
               icon: const Icon(Icons.auto_awesome),
               label: const Text('加载演示数据'),
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               ),
             ),
             const SizedBox(height: 8),
@@ -846,7 +850,8 @@ class _ErrorView extends StatelessWidget {
                 color: Colors.red.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.error_outline, size: 56, color: Colors.red),
+              child:
+                  const Icon(Icons.error_outline, size: 56, color: Colors.red),
             ),
             const SizedBox(height: 24),
             Text(

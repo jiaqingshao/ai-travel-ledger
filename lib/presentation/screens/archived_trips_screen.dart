@@ -29,8 +29,7 @@ class ArchivedTripsScreen extends ConsumerWidget {
                     Icon(Icons.inventory_2_outlined,
                         size: 96, color: Colors.grey),
                     SizedBox(height: 24),
-                    Text('没有已归档的旅程',
-                        style: TextStyle(color: Colors.grey)),
+                    Text('没有已归档的旅程', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
               ),
@@ -55,7 +54,9 @@ class ArchivedTripsScreen extends ConsumerWidget {
                 ),
                 trailing: TextButton(
                   onPressed: () async {
-                    await ref.read(tripNotifierProvider.notifier).unarchive(t.id);
+                    await ref
+                        .read(tripNotifierProvider.notifier)
+                        .unarchive(t.id);
                     ref.invalidate(archivedTripsProvider);
                     ref.invalidate(activeTripsProvider);
                     if (context.mounted) {

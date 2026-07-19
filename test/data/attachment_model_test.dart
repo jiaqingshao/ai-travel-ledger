@@ -37,7 +37,8 @@ void main() {
         mimeType: 'image/jpeg',
       );
       final uploaded = pending.markUploaded(
-        publicUrl: 'https://example.supabase.co/storage/v1/object/public/expense-attachments/trip-001/expense-001/uuid.jpg',
+        publicUrl:
+            'https://example.supabase.co/storage/v1/object/public/expense-attachments/trip-001/expense-001/uuid.jpg',
       );
       expect(uploaded.url, contains('expense-attachments'));
       expect(uploaded.localPath, isNull);

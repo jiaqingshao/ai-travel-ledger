@@ -205,11 +205,13 @@ void main() {
         occurredAt: DateTime(2026, 6, 10),
       );
       expect(repo.listByCategory('t1', ExpenseCategory.food), hasLength(2));
-      expect(repo.listByDateRange(
-        't1',
-        from: DateTime(2026, 6, 2),
-        to: DateTime(2026, 6, 8),
-      ), hasLength(1));
+      expect(
+          repo.listByDateRange(
+            't1',
+            from: DateTime(2026, 6, 2),
+            to: DateTime(2026, 6, 8),
+          ),
+          hasLength(1));
     });
 
     test('totalByTrip / totalByCategory', () async {
@@ -338,8 +340,12 @@ void main() {
         splitRuleJson: '',
       );
       syncCalls = 0;
-      final newRule = '{"type":"ratio","participants":[{"type":"member","id":"m1"},{"type":"member","id":"m2"}],"values":{"m1":0.6,"m2":0.4}}';
-      final newAttachments = ['https://example.com/r1.jpg', 'https://example.com/r2.jpg'];
+      final newRule =
+          '{"type":"ratio","participants":[{"type":"member","id":"m1"},{"type":"member","id":"m2"}],"values":{"m1":0.6,"m2":0.4}}';
+      final newAttachments = [
+        'https://example.com/r1.jpg',
+        'https://example.com/r2.jpg'
+      ];
       final updated = await repo.update(
         e.id,
         splitRuleJson: newRule,
@@ -364,7 +370,8 @@ void main() {
         splitRuleJson: '',
       );
       final newTime = DateTime(2026, 6, 20, 9, 0);
-      final newRule = '{"type":"equal","participants":[{"type":"member","id":"m1"}],"values":{}}';
+      final newRule =
+          '{"type":"equal","participants":[{"type":"member","id":"m1"}],"values":{}}';
       final updated = await repo.update(
         e.id,
         payerId: 'm3',

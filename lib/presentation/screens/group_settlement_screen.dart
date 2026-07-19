@@ -138,15 +138,14 @@ class _GroupSettlementView extends StatelessWidget {
                 children: [
                   ...groupTransfers.asMap().entries.map((e) {
                     final t = e.value;
-                    final isUngrouped = t.fromId == 'ungrouped' ||
-                        t.toId == 'ungrouped';
+                    final isUngrouped =
+                        t.fromId == 'ungrouped' || t.toId == 'ungrouped';
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       dense: true,
                       leading: CircleAvatar(
-                        backgroundColor: isUngrouped
-                            ? Colors.grey[200]
-                            : Colors.indigo[100],
+                        backgroundColor:
+                            isUngrouped ? Colors.grey[200] : Colors.indigo[100],
                         child: Text(
                           '${e.key + 1}',
                           style: TextStyle(
@@ -193,9 +192,7 @@ class _GroupSettlementView extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      groups.isEmpty
-                          ? '该旅程暂无分组'
-                          : '所有组之间已平衡',
+                      groups.isEmpty ? '该旅程暂无分组' : '所有组之间已平衡',
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),
@@ -227,9 +224,8 @@ class _GroupCard extends StatelessWidget {
     final isBalanced = !isCreditor && !isDebtor;
 
     // 组内成员
-    final groupMembers = members
-        .where((m) => groupSettlement.memberIds.contains(m.id))
-        .toList();
+    final groupMembers =
+        members.where((m) => groupSettlement.memberIds.contains(m.id)).toList();
 
     return Card(
       child: Padding(
@@ -256,8 +252,8 @@ class _GroupCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isCreditor
                         ? Colors.green[100]
@@ -306,8 +302,7 @@ class _GroupCard extends StatelessWidget {
                       label: Text(m.nickname,
                           style: const TextStyle(fontSize: 12)),
                       visualDensity: VisualDensity.compact,
-                      materialTapTargetSize:
-                          MaterialTapTargetSize.shrinkWrap,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   )
                   .toList(),

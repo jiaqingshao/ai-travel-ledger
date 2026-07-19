@@ -1,4 +1,4 @@
-﻿import 'package:hive/hive.dart';
+import 'package:hive/hive.dart';
 
 part 'member.g.dart';
 
@@ -89,9 +89,8 @@ class Member extends HiveObject {
       avatarColor: avatarColor ?? this.avatarColor,
       role: role ?? this.role,
       userId: userId,
-      groupId: identical(groupId, _sentinel)
-          ? this.groupId
-          : groupId as String?,
+      groupId:
+          identical(groupId, _sentinel) ? this.groupId : groupId as String?,
       joinedAt: joinedAt,
     );
   }

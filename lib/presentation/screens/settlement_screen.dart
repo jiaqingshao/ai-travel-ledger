@@ -103,12 +103,17 @@ class _SummaryCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.lightbulb_outline,
-                        size: 20, color: Theme.of(context).colorScheme.tertiary),
+                        size: 20,
+                        color: Theme.of(context).colorScheme.tertiary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         '本旅程还未记录任何费用,先添加一笔吧',
-                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onTertiaryContainer),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onTertiaryContainer),
                       ),
                     ),
                   ],
@@ -118,7 +123,9 @@ class _SummaryCard extends StatelessWidget {
             ],
             Row(
               children: [
-                Expanded(child: _Stat('总支出', '¥ ${df.format(settlement.totalAmount)}')),
+                Expanded(
+                    child:
+                        _Stat('总支出', '¥ ${df.format(settlement.totalAmount)}')),
                 Expanded(
                   child: _Stat(
                     '人均',
@@ -133,18 +140,14 @@ class _SummaryCard extends StatelessWidget {
                 Expanded(
                   child: _Stat(
                     '最高应收',
-                    maxCr == null
-                        ? '—'
-                        : '¥ ${df.format(maxCr.amount)}',
+                    maxCr == null ? '—' : '¥ ${df.format(maxCr.amount)}',
                     color: Colors.green,
                   ),
                 ),
                 Expanded(
                   child: _Stat(
                     '最高应付',
-                    maxDb == null
-                        ? '—'
-                        : '¥ ${df.format(maxDb.amount.abs())}',
+                    maxDb == null ? '—' : '¥ ${df.format(maxDb.amount.abs())}',
                     color: Colors.red,
                   ),
                 ),
@@ -256,8 +259,7 @@ class _BalancesCard extends StatelessWidget {
                     (m?.nickname ?? '?').isNotEmpty
                         ? m!.nickname[0].toUpperCase()
                         : '?',
-                    style: const TextStyle(
-                        color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
                 title: Text(m?.nickname ?? entry.key),
@@ -387,8 +389,7 @@ class _TransferTile extends ConsumerWidget {
           ),
           IconButton(
             tooltip: '标记已结清',
-            icon: const Icon(Icons.check_circle_outline,
-                color: Colors.green),
+            icon: const Icon(Icons.check_circle_outline, color: Colors.green),
             onPressed: () => _confirmMarkSettled(context, ref),
           ),
         ],
@@ -396,8 +397,7 @@ class _TransferTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmMarkSettled(
-      BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmMarkSettled(BuildContext context, WidgetRef ref) async {
     final df = NumberFormat('#,##0.00');
     final from = _findMember(members, transfer.fromId);
     final to = _findMember(members, transfer.toId);
@@ -554,7 +554,8 @@ class _EmptyView extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 '总费用：¥ ${df.format(s.totalAmount)}',
-                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    color: Colors.orange, fontWeight: FontWeight.w600),
               ),
             ],
           ],

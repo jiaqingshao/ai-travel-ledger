@@ -64,7 +64,8 @@ class AIService {
       {'role': 'user', 'content': prompt},
     ];
 
-    final request = http.Request('POST', Uri.parse('${_config.baseUrl}/chat/completions'));
+    final request =
+        http.Request('POST', Uri.parse('${_config.baseUrl}/chat/completions'));
     request.headers.addAll({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${_config.apiKey}',
@@ -108,7 +109,7 @@ class AIService {
           'model': _config.modelName,
           'prompt': prompt,
           if (maxTokens != null) 'max_tokens': maxTokens,
-          'temperature': 0.3,  // 代码补全用低温度
+          'temperature': 0.3, // 代码补全用低温度
         },
       );
       return _extractCompletionText(response);
@@ -201,7 +202,8 @@ class AIService {
 
   String _extractChatContent(http.Response response) {
     if (response.statusCode != 200) {
-      throw AIServiceException('API 返回 ${response.statusCode}: ${response.body}');
+      throw AIServiceException(
+          'API 返回 ${response.statusCode}: ${response.body}');
     }
     final data = jsonDecode(response.body);
     return data['choices'][0]['message']['content'] as String;
@@ -209,7 +211,8 @@ class AIService {
 
   String _extractCompletionText(http.Response response) {
     if (response.statusCode != 200) {
-      throw AIServiceException('API 返回 ${response.statusCode}: ${response.body}');
+      throw AIServiceException(
+          'API 返回 ${response.statusCode}: ${response.body}');
     }
     final data = jsonDecode(response.body);
     return data['choices'][0]['text'] as String;

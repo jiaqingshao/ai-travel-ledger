@@ -20,18 +20,21 @@ final expensesByTripProvider = StreamProvider.autoDispose
   }
 });
 
-/// 按 id 取单个费用（响应式：订阅 box.watch() 自动重建）
+/// 按 id 取单个费用（同步读 Hive）
 ///
-/// ISSUE-042 修复: 原版用 Provider.family + ref.watch(repoProvider) (no-op),
-/// Hive box 写入时不会重建, 导致编辑后详情页仍显示旧值.
-/// 现改为 StreamProvider.autoDispose.family 订阅 repo.watch() 流.
-final expenseByIdProvider =
-    StreamProvider.autoDispose.family<Expense?, String>((ref, id) async* {
+/// ISSUE-042 修复: 保留 Provider.family 同步读 Hive (无 loading 状态),
+/// 靠调用方 ref.invalidate(expenseByIdProvider) 手动重建.
+///
+/// 为什么不用 StreamProvider.autoDispose.family:
+/// - StreamProvider 首次 watch 时返回 AsyncValue.loading() (中间状态)
+/// - UI 层 maybeWhen + orElse 在 loading 时返回 null
+/// - 在 settle 之前可能短时间看到 "费用不存在或已删除"
+/// - 用户报告 "费用结算页变成空白" 可能是这个中间态
+///
+/// Provider.family 同步读 Hive, 不会产生 loading 状态, UI 状态更确定.
+final expenseByIdProvider = Provider.family<Expense?, String>((ref, id) {
   final repo = ref.watch(expenseRepositoryProvider);
-  yield repo.getById(id);
-  await for (final _ in repo.watch()) {
-    yield repo.getById(id);
-  }
+  return repo.getById(id);
 });
 
 /// 指定 trip 的总金额（响应式：订阅 box watch）

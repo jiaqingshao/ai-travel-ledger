@@ -27,7 +27,8 @@ class ModelSelector extends ConsumerWidget {
                 Icon(
                   model.isLocal ? Icons.computer : Icons.cloud,
                   size: 18,
-                  color: model.isPrimary ? const Color(0xFF2E7D32) : Colors.grey,
+                  color:
+                      model.isPrimary ? const Color(0xFF2E7D32) : Colors.grey,
                 ),
                 const SizedBox(width: 8),
                 Text(model.name),
@@ -70,9 +71,7 @@ class ModelStatusIndicator extends ConsumerWidget {
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: current.isPrimary
-                ? const Color(0xFF2E7D32)
-                : Colors.orange,
+            color: current.isPrimary ? const Color(0xFF2E7D32) : Colors.orange,
           ),
         ),
         const SizedBox(width: 6),

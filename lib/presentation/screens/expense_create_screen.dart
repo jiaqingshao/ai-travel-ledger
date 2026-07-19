@@ -289,9 +289,8 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
             amount: _amount,
             category: _category!,
             splitRuleJson: splitJson,
-            description: _descCtrl.text.trim().isEmpty
-                ? null
-                : _descCtrl.text.trim(),
+            description:
+                _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
             // ISSUE-026 step 2: 传递已上传的附件 URL 列表
             attachments: _pendingAttachments
                 .where((a) => a.url.isNotEmpty)
@@ -323,7 +322,7 @@ class _ExpenseCreateScreenState extends ConsumerState<ExpenseCreateScreen> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
-    return true;  // 成功路径
+    return true; // 成功路径
   }
 
   Future<bool?> _confirmDuplicate(Expense existing) {
@@ -438,17 +437,14 @@ class _PayerStep extends StatelessWidget {
         ...members.map((m) {
           final isSel = selected?.id == m.id;
           return Card(
-            color: isSel
-                ? Theme.of(context).colorScheme.primaryContainer
-                : null,
+            color:
+                isSel ? Theme.of(context).colorScheme.primaryContainer : null,
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor:
                     Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 child: Text(
-                  m.nickname.isNotEmpty
-                      ? m.nickname[0].toUpperCase()
-                      : '?',
+                  m.nickname.isNotEmpty ? m.nickname[0].toUpperCase() : '?',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -569,12 +565,11 @@ class _AmountStep extends StatelessWidget {
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -590,8 +585,8 @@ class _AmountStep extends StatelessWidget {
                       if (input.isNotEmpty)
                         Text(
                           '已输入：$input',
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 12),
+                          style:
+                              const TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                     ],
                   ),
@@ -676,8 +671,10 @@ class _NumPad extends StatelessWidget {
                           child: _KeyButton(
                             label: k,
                             onTap: () {
-                              if (k == 'back') onBackspace();
-                              else onKey(k);
+                              if (k == 'back')
+                                onBackspace();
+                              else
+                                onKey(k);
                             },
                             onLongPress: k == 'back' ? onClear : null,
                           ),
@@ -789,12 +786,15 @@ class _BottomBar extends StatelessWidget {
               // 重命名避免与按金额分摊的"输入 a 跳 b" 流程混淆
               Expanded(
                 child: Tooltip(
-                  message: '保存当前费用并清空表单，准备记录下一笔相似费用\n（按金额分摊内的连续输入，请用键盘 Next 键切换字段）',
+                  message:
+                      '保存当前费用并清空表单，准备记录下一笔相似费用\n（按金额分摊内的连续输入，请用键盘 Next 键切换字段）',
                   child: OutlinedButton.icon(
-                    onPressed: !canSubmit || submitting ? null : onSubmitAndContinue,
+                    onPressed:
+                        !canSubmit || submitting ? null : onSubmitAndContinue,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary),
                     ),
                     icon: const Icon(Icons.add_circle_outline, size: 18),
                     label: const Text('保存并开新'),

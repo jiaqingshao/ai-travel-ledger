@@ -64,8 +64,8 @@ final transferRecordsByTripProvider = StreamProvider.autoDispose
 // [PR-X4 修复 S-24] 4 层 when 重构为扁平化 + 短路逻辑
 // 行为保持一致:任一 loading/error 立即返回,错误信息保留
 // records 部分:失败 fallback 到空 list(不阻塞主计算,原逻辑保留)
-final settlementProvider =
-    Provider.autoDispose.family<AsyncValue<TripSettlement>, String>((ref, tripId) {
+final settlementProvider = Provider.autoDispose
+    .family<AsyncValue<TripSettlement>, String>((ref, tripId) {
   final expensesAsync = ref.watch(expensesByTripProvider(tripId));
   final membersAsync = ref.watch(membersByTripProvider(tripId));
   final groupsAsync = ref.watch(groupsByTripProvider(tripId));

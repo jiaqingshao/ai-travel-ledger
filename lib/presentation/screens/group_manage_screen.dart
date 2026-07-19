@@ -32,18 +32,16 @@ class GroupManageScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: groups.map((g) {
-              final members = allMembers
-                  .where((m) => m.groupId == g.id)
-                  .toList();
+              final members =
+                  allMembers.where((m) => m.groupId == g.id).toList();
               return Card(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 6),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: ExpansionTile(
                   leading: Text(g.icon, style: const TextStyle(fontSize: 24)),
                   title: Text(g.name,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text(
-                      '${g.groupType.displayName} · ${members.length} 人'),
+                  subtitle:
+                      Text('${g.groupType.displayName} · ${members.length} 人'),
                   trailing: PopupMenuButton<String>(
                     onSelected: (v) async {
                       if (v == 'edit') {
@@ -88,9 +86,8 @@ class GroupManageScreen extends ConsumerWidget {
                             dense: true,
                             leading: CircleAvatar(
                               radius: 14,
-                              backgroundColor:
-                                  _parseColor(m.avatarColor) ??
-                                      Theme.of(context).colorScheme.primary,
+                              backgroundColor: _parseColor(m.avatarColor) ??
+                                  Theme.of(context).colorScheme.primary,
                               child: Text(
                                 m.nickname.isNotEmpty
                                     ? m.nickname[0].toUpperCase()
@@ -144,8 +141,8 @@ class GroupManageScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref,
-      TripGroup g, int memberCount) async {
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, TripGroup g, int memberCount) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -169,9 +166,8 @@ class GroupManageScreen extends ConsumerWidget {
     if (ok == true) {
       // 先把组内成员移到未分组
       if (memberCount > 0) {
-        final members = ref
-            .read(memberRepositoryProvider)
-            .listByGroup(tripId, g.id);
+        final members =
+            ref.read(memberRepositoryProvider).listByGroup(tripId, g.id);
         for (final m in members) {
           await ref
               .read(memberNotifierProvider.notifier)
@@ -202,11 +198,9 @@ class _EmptyView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.group_work_outlined,
-                size: 96, color: Colors.grey),
+            const Icon(Icons.group_work_outlined, size: 96, color: Colors.grey),
             const SizedBox(height: 24),
-            Text('还没有分组',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text('还没有分组', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             const Text('把成员分成家庭、部门或队伍，方便分摊',
                 style: TextStyle(color: Colors.grey),
@@ -276,8 +270,8 @@ class _GroupEditorSheetState extends ConsumerState<_GroupEditorSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(_isEdit ? '编辑分组' : '新建分组',
-              style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           TextField(
             controller: _nameCtrl,
@@ -332,9 +326,7 @@ class _GroupEditorSheetState extends ConsumerState<_GroupEditorSheet> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: _submitting
-                    ? null
-                    : () => Navigator.pop(context),
+                onPressed: _submitting ? null : () => Navigator.pop(context),
                 child: const Text('取消'),
               ),
               const SizedBox(width: 8),

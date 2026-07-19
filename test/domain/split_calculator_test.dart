@@ -126,7 +126,8 @@ void main() {
     });
 
     test('尾差补偿：100 元 3 人 → 33.34 + 33.33 + 33.33', () {
-      final r = SplitCalculator.equalAll(total: 100, memberIds: ['a', 'b', 'c']);
+      final r =
+          SplitCalculator.equalAll(total: 100, memberIds: ['a', 'b', 'c']);
       expect(r.map((e) => e.amount).toList(), [33.34, 33.33, 33.33]);
       expect(sum(r), closeTo(100.0, 0.001));
     });

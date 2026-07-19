@@ -47,7 +47,8 @@ Widget _wrap({
 }) {
   return ProviderScope(
     overrides: [
-      appSettingsRepositoryProvider.overrideWithValue(_FakeAppSettingsRepository(settings)),
+      appSettingsRepositoryProvider
+          .overrideWithValue(_FakeAppSettingsRepository(settings)),
     ],
     child: MaterialApp(
       home: Scaffold(
@@ -83,8 +84,7 @@ void main() {
       expect(find.textContaining('附件功能需要云同步'), findsOneWidget);
     });
 
-    testWidgets('云模式 + 空列表: 显示「点击添加可拍照或从相册选择」提示',
-        (tester) async {
+    testWidgets('云模式 + 空列表: 显示「点击添加可拍照或从相册选择」提示', (tester) async {
       const cloudSettings = AppSettings(
         mode: 'cloud',
         supabaseUrl: 'https://example.supabase.co',

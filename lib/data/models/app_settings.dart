@@ -55,7 +55,8 @@ class AppSettings {
       supabaseUrl: supabaseUrl ?? this.supabaseUrl,
       supabaseAnonKey: supabaseAnonKey ?? this.supabaseAnonKey,
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
-      lastConnectionError: clearError ? null : (lastConnectionError ?? this.lastConnectionError),
+      lastConnectionError:
+          clearError ? null : (lastConnectionError ?? this.lastConnectionError),
       lastConnectedAt: lastConnectedAt ?? this.lastConnectedAt,
     );
   }
@@ -66,8 +67,11 @@ class AppSettings {
   AppSettings mergeWith(AppSettings other) {
     return AppSettings(
       mode: other.mode.isNotEmpty ? other.mode : mode,
-      supabaseUrl: other.supabaseUrl.isNotEmpty ? other.supabaseUrl : supabaseUrl,
-      supabaseAnonKey: other.supabaseAnonKey.isNotEmpty ? other.supabaseAnonKey : supabaseAnonKey,
+      supabaseUrl:
+          other.supabaseUrl.isNotEmpty ? other.supabaseUrl : supabaseUrl,
+      supabaseAnonKey: other.supabaseAnonKey.isNotEmpty
+          ? other.supabaseAnonKey
+          : supabaseAnonKey,
       autoSyncEnabled: other.autoSyncEnabled,
       lastConnectionError: other.lastConnectionError,
       lastConnectedAt: other.lastConnectedAt ?? lastConnectedAt,

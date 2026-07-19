@@ -44,9 +44,7 @@ class MemberManageScreen extends ConsumerWidget {
                   backgroundColor: _parseColor(m.avatarColor) ??
                       Theme.of(context).colorScheme.primary,
                   child: Text(
-                    m.nickname.isNotEmpty
-                        ? m.nickname[0].toUpperCase()
-                        : '?',
+                    m.nickname.isNotEmpty ? m.nickname[0].toUpperCase() : '?',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -163,8 +161,7 @@ class MemberManageScreen extends ConsumerWidget {
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text('调整分组',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
@@ -242,8 +239,7 @@ class _EmptyView extends StatelessWidget {
           children: [
             const Icon(Icons.people_outline, size: 96, color: Colors.grey),
             const SizedBox(height: 24),
-            Text('还没有成员',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text('还没有成员', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             const Text('添加成员，或邀请未注册用户参与记账',
                 style: TextStyle(color: Colors.grey),
@@ -350,9 +346,7 @@ class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: _submitting
-                    ? null
-                    : () => Navigator.pop(context),
+                onPressed: _submitting ? null : () => Navigator.pop(context),
                 child: const Text('取消'),
               ),
               const SizedBox(width: 8),

@@ -66,7 +66,8 @@ class MockSupabaseService implements SupabaseService {
 
   /// Mock switchMode: 等价于 init(newSettings)
   @override
-  Future<({bool success, String? error})> switchMode(AppSettings newSettings) async {
+  Future<({bool success, String? error})> switchMode(
+      AppSettings newSettings) async {
     return await init(settings: newSettings);
   }
 
@@ -78,7 +79,8 @@ class MockSupabaseService implements SupabaseService {
   }
 
   @override
-  Future<AuthResponse> signIn({required String email, required String password}) async {
+  Future<AuthResponse> signIn(
+      {required String email, required String password}) async {
     _email = email;
     _userId = 'user-${email.hashCode}';
     return AuthResponse(session: _mockSession(), user: _mockUser());
@@ -147,7 +149,8 @@ class _ProxyTable {
   final MockSupabaseService mock;
   final String table;
 
-  Future<void> upsert(Map<String, dynamic> values, {bool onConflict = false}) async {
+  Future<void> upsert(Map<String, dynamic> values,
+      {bool onConflict = false}) async {
     if (mock.simulateNetworkError) throw Exception('Network error');
     switch (table) {
       case 'trips':
@@ -203,12 +206,14 @@ abstract class _SelectChainFuture implements Future<List<dynamic>> {
   Future<List<dynamic>> get future;
 
   @override
-  Future<R> then<R>(FutureOr<R> Function(List<dynamic>) onValue, {Function? onError}) {
+  Future<R> then<R>(FutureOr<R> Function(List<dynamic>) onValue,
+      {Function? onError}) {
     return future.then<R>(onValue, onError: onError);
   }
 
   @override
-  Future<List<dynamic>> catchError(Function onError, {bool Function(Object)? test}) {
+  Future<List<dynamic>> catchError(Function onError,
+      {bool Function(Object)? test}) {
     return future.catchError(onError, test: test);
   }
 
@@ -218,7 +223,8 @@ abstract class _SelectChainFuture implements Future<List<dynamic>> {
   }
 
   @override
-  Future<List<dynamic>> timeout(Duration timeLimit, {FutureOr<List<dynamic>> Function()? onTimeout}) {
+  Future<List<dynamic>> timeout(Duration timeLimit,
+      {FutureOr<List<dynamic>> Function()? onTimeout}) {
     return future.timeout(timeLimit, onTimeout: onTimeout);
   }
 

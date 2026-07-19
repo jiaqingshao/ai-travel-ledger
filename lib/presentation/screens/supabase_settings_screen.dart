@@ -15,10 +15,12 @@ class SupabaseSettingsScreen extends ConsumerStatefulWidget {
   const SupabaseSettingsScreen({super.key});
 
   @override
-  ConsumerState<SupabaseSettingsScreen> createState() => _SupabaseSettingsScreenState();
+  ConsumerState<SupabaseSettingsScreen> createState() =>
+      _SupabaseSettingsScreenState();
 }
 
-class _SupabaseSettingsScreenState extends ConsumerState<SupabaseSettingsScreen> {
+class _SupabaseSettingsScreenState
+    extends ConsumerState<SupabaseSettingsScreen> {
   final _urlCtrl = TextEditingController();
   final _keyCtrl = TextEditingController();
   bool _obscureKey = true;
@@ -104,7 +106,8 @@ class _SupabaseSettingsScreenState extends ConsumerState<SupabaseSettingsScreen>
       ));
       setState(() {
         _busy = false;
-        _error = '❌ 连接失败, 已回退本地模式\n\n${result.error ?? "未知错误"}\n\n请检查:\n• URL 是否正确\n• anon key 是否完整\n• 网络是否可达';
+        _error =
+            '❌ 连接失败, 已回退本地模式\n\n${result.error ?? "未知错误"}\n\n请检查:\n• URL 是否正确\n• anon key 是否完整\n• 网络是否可达';
       });
     }
   }
@@ -166,8 +169,11 @@ class _SupabaseSettingsScreenState extends ConsumerState<SupabaseSettingsScreen>
                     setState(() => _obscureKey = !_obscureKey),
               ),
               const SizedBox(height: 16),
-              if (_error != null) _MessageCard(text: _error!, color: theme.colorScheme.error),
-              if (_success != null) _MessageCard(text: _success!, color: theme.colorScheme.tertiary),
+              if (_error != null)
+                _MessageCard(text: _error!, color: theme.colorScheme.error),
+              if (_success != null)
+                _MessageCard(
+                    text: _success!, color: theme.colorScheme.tertiary),
               const SizedBox(height: 16),
               _ActionButtons(
                 busy: _busy,
@@ -237,7 +243,9 @@ class _StatusCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(title,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   Text(subtitle, style: theme.textTheme.bodySmall),
                 ],
@@ -271,7 +279,8 @@ class _ConfigForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Supabase 配置', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            const Text('Supabase 配置',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
             const SizedBox(height: 4),
             const Text('从 Supabase Dashboard > Settings > API 获取',
                 style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -297,7 +306,8 @@ class _ConfigForm extends StatelessWidget {
                 hintText: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
                 prefixIcon: const Icon(Icons.key),
                 suffixIcon: IconButton(
-                  icon: Icon(obscureKey ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(
+                      obscureKey ? Icons.visibility : Icons.visibility_off),
                   onPressed: onToggleObscure,
                   tooltip: obscureKey ? '显示' : '隐藏',
                 ),
@@ -334,8 +344,10 @@ class _ActionButtons extends StatelessWidget {
           onPressed: busy ? null : onConnect,
           icon: busy
               ? const SizedBox(
-                  width: 18, height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.cloud_upload_outlined),
           label: Text(busy ? '连接中...' : (isCloudMode ? '重新连接' : '连接云端')),
           style: FilledButton.styleFrom(
@@ -405,14 +417,16 @@ class _HelpCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            const Text('1. 注册 Supabase: https://supabase.com\n'
+            const Text(
+                '1. 注册 Supabase: https://supabase.com\n'
                 '2. 创建项目, 执行 supabase/migrations/*.sql 迁移\n'
                 '3. Settings > API 复制 Project URL 和 anon key\n'
                 '4. 粘贴到上方, 点"连接云端"\n'
                 '5. 连接失败会自动回退本地模式, 不影响使用',
                 style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 12),
-            const Text('联系开发者获取帮助: https://github.com/jiaqingshao/ai-travel-ledger/issues',
+            const Text(
+                '联系开发者获取帮助: https://github.com/jiaqingshao/ai-travel-ledger/issues',
                 style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),

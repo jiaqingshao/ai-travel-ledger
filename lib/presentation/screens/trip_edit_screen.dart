@@ -29,8 +29,8 @@ class _TripEditScreenState extends ConsumerState<TripEditScreen> {
   @override
   void initState() {
     super.initState();
-    // ISSUE-042: tripByIdProvider 现在是 StreamProvider, ref.read 拿 AsyncValue
-    final trip = ref.read(tripByIdProvider(widget.tripId)).valueOrNull;
+    // ISSUE-042 v2: 恢复 Provider.family 同步读 Hive
+    final trip = ref.read(tripByIdProvider(widget.tripId));
     _nameCtrl = TextEditingController(text: trip?.name ?? '');
     _destinationCtrl = TextEditingController(text: trip?.destination ?? '');
     _currency = trip?.baseCurrency ?? 'CNY';
